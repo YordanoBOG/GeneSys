@@ -1,0 +1,19 @@
+NOTAS SOBRE TEMAS Y DUDAS QUE ME VAN SURGIENDO MIENTRAS HAGO EL TFG:
+
+-> Sobre GIT:
+$ls -a -> listar directorios ocultos incluido el .git en la carpeta del TFG.
+$git push -> Tras haber subido la carpeta una primera vez, con ejecutar esto ya se actualizará el repositorio remoto de forma automática, en otro caso:
+$git checkout main -> para asegurarte de que estás en la rama principal que por lo general va a ser la que deseas subir.
+$git add . -> Añadir ficheros actuales a tu repositorio
+$git commit -m "Mensaje del commit" -> Guardar cambios realizados sobre el repsoitorio
+$git push -u origin main -> subir rama main de tu repositorio local a GitHub (se sobreentiende que ya has añadido el repositorio remoto con "git remote add origin <enlace_del_repositorio>")
+
+-> En la base de datos BLAST, pone que los servidores de la API "are a shared resource and
+not intended for projects that involve a large number of BLAST searches. We provide the Stand-alone
+BLAST+ binaries, Docker Image and Elastic BLAST for these purposes." Esto indica que si las consultas
+son altas, digamos, de más de 1000 genomas por consulta, es mejor usar la herramienta BLAST+ que ofrece
+acceso a la base de datos por línea de comandos, y si no ElasticBLAST, que es la versión en la
+nube,pero: "ElasticBLAST status: beta. Platforms available: AWS, GCP (account required)"
+
+-> La API de MGnify ofrece consultas de muchos tipos de datos, ¿cuáles estoy buscando? SUpuestamente, la url a
+la API de MGnify es https://www.ebi.ac.uk/metagenomics/api/latest/
