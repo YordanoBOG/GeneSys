@@ -9,6 +9,7 @@ $git commit -m "Mensaje del commit" -> Guardar cambios realizados sobre el repso
 $git push (-u origin main; esto solo es obligatorio la primera vez) -> subir rama main de tu repositorio local a GitHub (se sobreentiende que ya has añadido el repositorio remoto con "git remote add origin <enlace_del_repositorio>")
 $git ls-files /ruta ->  Este comando te mostrará una lista de los archivos que están bajo el control de versiones de Git en tu repositorio.
 $git rm (-r) nombre_del_archivo -> Para eliminar archivos del repositorio. El flag -r es necesario si eliminas una carpeta con subdirectorios.
+$git reset --hard HEAD~n -> Cada vez que "Tu rama está adelantada a origin/main por n commits" te salga, usa esto para borrar los n commits pendientes. En caso de que te borres más commits de la cuenta, usa "git pull" para descargar lo del repositorio remoto 
 
 -> En la base de datos BLAST, pone que los servidores de la API "are a shared resource and
 not intended for projects that involve a large number of BLAST searches. We provide the Stand-alone
