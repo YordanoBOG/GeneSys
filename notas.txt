@@ -2,11 +2,13 @@ NOTAS SOBRE TEMAS Y DUDAS QUE ME VAN SURGIENDO MIENTRAS HAGO EL TFG:
 
 -> Sobre GIT:
 $ls -a -> listar directorios ocultos incluido el .git en la carpeta del TFG.
-$git push -> Tras haber subido la carpeta una primera vez, con ejecutar esto ya se actualizará el repositorio remoto de forma automática, en otro caso:
+$git push -> Tras haber subido la carpeta una primera vez, con ejecutar esto ya se actualizará el repositorio remoto de forma automática, en otro caso, si deseas añadir primero nuevos ficheros al repositorio local:
 $git checkout main -> para asegurarte de que estás en la rama principal que por lo general va a ser la que deseas subir.
 $git add . -> Añadir ficheros actuales a tu repositorio
 $git commit -m "Mensaje del commit" -> Guardar cambios realizados sobre el repsoitorio
-$git push -u origin main -> subir rama main de tu repositorio local a GitHub (se sobreentiende que ya has añadido el repositorio remoto con "git remote add origin <enlace_del_repositorio>")
+$git push (-u origin main; esto solo es obligatorio la primera vez) -> subir rama main de tu repositorio local a GitHub (se sobreentiende que ya has añadido el repositorio remoto con "git remote add origin <enlace_del_repositorio>")
+$git ls-files /ruta ->  Este comando te mostrará una lista de los archivos que están bajo el control de versiones de Git en tu repositorio.
+$git rm (-r) nombre_del_archivo -> Para eliminar archivos del repositorio. El flag -r es necesario si eliminas una carpeta con subdirectorios.
 
 -> En la base de datos BLAST, pone que los servidores de la API "are a shared resource and
 not intended for projects that involve a large number of BLAST searches. We provide the Stand-alone
@@ -17,3 +19,5 @@ nube,pero: "ElasticBLAST status: beta. Platforms available: AWS, GCP (account re
 
 -> La API de MGnify ofrece consultas de muchos tipos de datos, ¿cuáles estoy buscando? SUpuestamente, la url a
 la API de MGnify es https://www.ebi.ac.uk/metagenomics/api/latest/
+
+-> Uso de BLAST+: https://www.youtube.com/watch?v=1AzujLnr3RM
