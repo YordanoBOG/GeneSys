@@ -1,0 +1,258 @@
+BLASTN 2.12.0+
+
+
+Reference: Zheng Zhang, Scott Schwartz, Lukas Wagner, and Webb
+Miller (2000), "A greedy algorithm for aligning DNA sequences", J
+Comput Biol 2000; 7(1-2):203-14.
+
+
+
+Database: blast_practice_data/new_species.fasta
+           1 sequences; 100,165 total letters
+
+
+
+Query= short_read1
+
+Length=8
+                                                                      Score     E
+Sequences producing significant alignments:                          (Bits)  Value
+
+new_species                                                           15.9    4.9  
+
+
+> new_species
+Length=100165
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Plus
+
+Query  1   GCCGTGAT  8
+           ||||||||
+Sbjct  12  GCCGTGAT  19
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  1      GCCGTGAT  8
+              ||||||||
+Sbjct  19258  GCCGTGAT  19251
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  1      GCCGTGAT  8
+              ||||||||
+Sbjct  38746  GCCGTGAT  38739
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  1      GCCGTGAT  8
+              ||||||||
+Sbjct  76752  GCCGTGAT  76745
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Plus
+
+Query  1      GCCGTGAT  8
+              ||||||||
+Sbjct  79318  GCCGTGAT  79325
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Plus
+
+Query  1      GCCGTGAT  8
+              ||||||||
+Sbjct  98760  GCCGTGAT  98767
+
+
+
+Lambda      K        H
+    1.33    0.621     1.12 
+
+Gapped
+Lambda      K        H
+    1.28    0.460    0.850 
+
+Effective search space used: 300480
+
+
+Query= short_read2
+
+Length=12
+                                                                      Score     E
+Sequences producing significant alignments:                          (Bits)  Value
+
+new_species                                                           23.3    0.029
+
+
+> new_species
+Length=100165
+
+ Score = 23.3 bits (12),  Expect = 0.029
+ Identities = 12/12 (100%), Gaps = 0/12 (0%)
+ Strand=Plus/Plus
+
+Query  1   GGCTTCATTACG  12
+           ||||||||||||
+Sbjct  1   GGCTTCATTACG  12
+
+
+ Score = 19.6 bits (10),  Expect = 0.38
+ Identities = 10/10 (100%), Gaps = 0/10 (0%)
+ Strand=Plus/Plus
+
+Query  3      CTTCATTACG  12
+              ||||||||||
+Sbjct  46932  CTTCATTACG  46941
+
+
+ Score = 17.7 bits (9),  Expect = 1.4
+ Identities = 9/9 (100%), Gaps = 0/9 (0%)
+ Strand=Plus/Plus
+
+Query  1      GGCTTCATT  9
+              |||||||||
+Sbjct  13902  GGCTTCATT  13910
+
+
+ Score = 17.7 bits (9),  Expect = 1.4
+ Identities = 9/9 (100%), Gaps = 0/9 (0%)
+ Strand=Plus/Plus
+
+Query  1      GGCTTCATT  9
+              |||||||||
+Sbjct  42254  GGCTTCATT  42262
+
+
+ Score = 17.7 bits (9),  Expect = 1.4
+ Identities = 9/9 (100%), Gaps = 0/9 (0%)
+ Strand=Plus/Plus
+
+Query  1      GGCTTCATT  9
+              |||||||||
+Sbjct  55019  GGCTTCATT  55027
+
+
+ Score = 17.7 bits (9),  Expect = 1.4
+ Identities = 9/9 (100%), Gaps = 0/9 (0%)
+ Strand=Plus/Minus
+
+Query  4      TTCATTACG  12
+              |||||||||
+Sbjct  88701  TTCATTACG  88693
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  3      CTTCATTA  10
+              ||||||||
+Sbjct  30370  CTTCATTA  30363
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  5      TCATTACG  12
+              ||||||||
+Sbjct  40043  TCATTACG  40036
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  3      CTTCATTA  10
+              ||||||||
+Sbjct  47013  CTTCATTA  47006
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  2      GCTTCATT  9
+              ||||||||
+Sbjct  67642  GCTTCATT  67635
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Plus
+
+Query  2      GCTTCATT  9
+              ||||||||
+Sbjct  72033  GCTTCATT  72040
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Plus
+
+Query  1      GGCTTCAT  8
+              ||||||||
+Sbjct  73288  GGCTTCAT  73295
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  1      GGCTTCAT  8
+              ||||||||
+Sbjct  85444  GGCTTCAT  85437
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  4      TTCATTAC  11
+              ||||||||
+Sbjct  87263  TTCATTAC  87256
+
+
+ Score = 15.9 bits (8),  Expect = 4.9
+ Identities = 8/8 (100%), Gaps = 0/8 (0%)
+ Strand=Plus/Minus
+
+Query  3      CTTCATTA  10
+              ||||||||
+Sbjct  98174  CTTCATTA  98167
+
+
+
+Lambda      K        H
+    1.33    0.621     1.12 
+
+Gapped
+Lambda      K        H
+    1.28    0.460    0.850 
+
+Effective search space used: 300468
+
+
+  Database: blast_practice_data/new_species.fasta
+    Posted date:  Feb 26, 2024  5:19 PM
+  Number of letters in database: 100,165
+  Number of sequences in database:  1
+
+
+
+Matrix: blastn matrix 1 -2
+Gap Penalties: Existence: 0, Extension: 2.5

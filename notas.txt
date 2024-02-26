@@ -18,7 +18,14 @@ son altas, digamos, de más de 1000 genomas por consulta, es mejor usar la herra
 acceso a la base de datos por línea de comandos, y si no ElasticBLAST, que es la versión en la
 nube,pero: "ElasticBLAST status: beta. Platforms available: AWS, GCP (account required)"
 
+-> Creo que solo tiene sentido usar BLAST para hacer la base de datos y guardar los .fasta con los que se trabajarán ahí y
+   en subbases asociadas. Si BLAST permite hacer árboles filogenéticos, también debería usarse para ello.
+   En lo referente a los algoritmos de búsqueda, creo que lo mejor será crearlos por tu cuenta y comparar los
+   resultados con BLAST para asegurarte de que funcionan bien, pero nada más. Mete un mínimo de longitud de cadenas
+   coincidentes (el mismo que BLAST) para descartar los emparejamientos casuales.
+
 -> La API de MGnify ofrece consultas de muchos tipos de datos, ¿cuáles estoy buscando? SUpuestamente, la url a
 la API de MGnify es https://www.ebi.ac.uk/metagenomics/api/latest/
 
--> Uso de BLAST+: https://www.youtube.com/watch?v=1AzujLnr3RM
+-> Uso de BLAST+: https://www.youtube.com/watch?v=1AzujLnr3RM | https://youtu.be/RzlnYOtba_I?si=LD1yW5nEmHCfk9NM
+
