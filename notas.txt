@@ -29,3 +29,15 @@ la API de MGnify es https://www.ebi.ac.uk/metagenomics/api/latest/
 
 -> Uso de BLAST+: https://www.youtube.com/watch?v=1AzujLnr3RM | https://youtu.be/RzlnYOtba_I?si=LD1yW5nEmHCfk9NM
 
+-> Blast incorpora varios programas, los más comunes, blastn, blastp, blastx, tblast y tblastx.
+
+-> También se debe conocer a qué bases de datos Blast se les puede realizar peticiones. Las tienes
+en https://ftp.ncbi.nlm.nih.gov/blast/db/ y la documentación de las mismas en https://ftp.ncbi.nlm.nih.gov/blast/documents/blastdb.html
+
+-> Una duda importante es si las secuencias cebo que te van a dar tienen derechos de propiedad o no, porque
+si los tienen entonces debes usar una base de datos local, no hacer consultas al servidor.
+
+-> La paridad entre resultados para una determinada consulta en Blast se puede medir con el e-value
+de la coincidenica (el e-value es un parámetro del objeto Alignment. Cada objeto BlastRecord es
+una lista de objetos Alignment). También se puede medir según la longitud de la coincidencia con
+len(hit.target) donde un hit es un Alignment de un BlastRecord.

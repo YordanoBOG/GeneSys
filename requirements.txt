@@ -1,1 +1,2 @@
 -> sudo apt-get install ncbi-blast+
+-> pip3 install biopython || conda install --name <my_env> biopython
