@@ -1,2 +1,2 @@
--> sudo apt-get install ncbi-blast+
--> pip3 install biopython || conda install --name <my_env> biopython
+-> NO sudo apt-get install ncbi-blast+
+-> NO pip3 install biopython (instala la 1.83) || conda install --name <my_env> biopython=1.78
