@@ -1,2 +1,3 @@
 -> NO sudo apt-get install ncbi-blast+
 -> NO pip3 install biopython (instala la 1.83) || conda install --name <my_env> biopython=1.78
+-> conda install -n <name_env> kivy -c conda-forge || -> python -m pip install kivy -v 2.3.0 (kivy_examples) -> añade lo que hay entre paréntesis para descargar ejemplos de prueba
