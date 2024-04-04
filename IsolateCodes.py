@@ -14,9 +14,7 @@ def make_parser():
     # Create ArgumentParser object
     parser = argparse.ArgumentParser(description='Argument parser for csv pathfile and column name which will be isolated')
 
-    # Add arguments
-    # ERROR: can't open file '/home/bruno/Documentos/UGR/IngInformatica/Grado/Curso4/TFG/trabajo/IsolateCodes': [Errno 2] No such file or directory
-    parser.add_argument('script', help='First argument contains the name o this python script')
+    # Add arguments to the parser
     parser.add_argument('path_to_csv', help='Input csv file path')
     parser.add_argument('id_column_name', help="Name of the column that contains string's ID")
 
@@ -31,12 +29,8 @@ def make_parser():
 
 def get_data():
     args_parser = make_parser() # make parser
-    args = args_parser.parse_args() # parse arguments
+    args = args_parser.parse_args() # parse parser arguments
     return ( process_codes(args.path_to_csv, args.id_column_name) ) # access arguments
-
-    #path_to_csv = input("Please, introduce csv's pathname: ") # ../datos/BVBRC_sp_gene_reverse_transcriptase.csv | ../datos/Hotel_Reservations.csv
-    #id_column_name = input("Please, introduce the name of the column that contains string's ID: ") # BRC ID | room_type_reserved
-    #return ( process_codes(path_to_csv, id_column_name) )
 
 ##############################################################################
 ##############################################################################
@@ -105,7 +99,7 @@ def process_codes(csv_path, column_name):
 ##############################################################################
 ##############################################################################
 ##############################################################################
-# MAIN. It runs the program till there are no errors in the execution
+# MAIN section. It runs the program
 
 return_status = get_data()
 

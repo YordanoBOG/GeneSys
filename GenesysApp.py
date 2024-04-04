@@ -15,7 +15,7 @@ import subprocess
 ###############################################################################
 ###############################################################################
 
-#class TextBox
+# class TextBox
 
 ###############################################################################
 ###############################################################################
@@ -42,11 +42,11 @@ class MenuScreen(GridLayout):
         button.padding = [20, 20]  # Set padding/margins (left and right: 20 pixels, top and bottom: 20 pixels)
         self.add_widget(button)
 
-    # Still not tried
+    # Call the script that isolates gene codes with the given arguments
     def execute_get_codes(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
-        args = '-csv ' + self.csvpath.text + ' -col ' + self.columnname.text # join csvpath and columnname in a single string which will be treated as arguments for "IsolateCodes.py" script
-        subprocess.run(["python", "IsolateCodes.py", args])
-
+        csv_path = self.csvpath.text
+        column_name = self.columnname.text
+        subprocess.run(["python", "IsolateCodes.py", csv_path, column_name]) # csv_path and column_name are arguments
 
 ###############################################################################
 ###############################################################################
