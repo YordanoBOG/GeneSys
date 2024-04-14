@@ -4,6 +4,8 @@ kivy.require('2.3.0') # replace with your current kivy version!
 
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.dropdown import DropDown
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
@@ -14,20 +16,13 @@ import subprocess
 ###############################################################################
 ###############################################################################
 ###############################################################################
-
-# class TextBox
-
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-
-class MenuScreen(GridLayout):
+#'''
+class IsolateCodesScreen(GridLayout):
     def __init__(self, **kwargs):
-        super(MenuScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
-        self.rows = 3 # We ask the GridLayout to manage its children in two columns and add a Label and a TextInput for the username and password.
+        super(IsolateCodesScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
+        self.rows = 3 # We ask the GridLayout to manage its children in two columns and 3 rows.
         self.cols = 2
-
+        
         # Add text boxes
         self.add_widget(Label(text="Please, introduce csv's pathname: "))
         self.csvpath = TextInput(multiline=False)
@@ -47,6 +42,54 @@ class MenuScreen(GridLayout):
         csv_path = self.csvpath.text
         column_name = self.columnname.text
         subprocess.run(["python", "IsolateCodes.py", csv_path, column_name]) # csv_path and column_name are arguments
+#'''
+
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+
+class MenuScreen(GridLayout): # This screen will show via buttons all the available functionality of the app
+    def __init__(self, **kwargs):
+        super(MenuScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
+        
+        self.rows = 3 # We ask the GridLayout to manage its children in 1 column and 3 rows.
+        self.cols = 1
+
+        # Button that opens the menu who isolates PATRIC codes given a csv path and a column name (in the future it will only receive a CSV path, assuming the column we are searching for is 'BRC ID')
+        main_menu_button = Button(text='Isolate PATRIC Codes', size_hint=(None, None), size=(150, 50), on_press=self.open_isolate_codes_menu)
+        self.add_widget(main_menu_button)
+
+    def open_isolate_codes_menu(self, instance):
+        # Open the isolate codes menu
+        isolate_codes_screen = IsolateCodesScreen()
+        self.parent.add_widget(isolate_codes_screen)
+        
+    '''
+    # Main menu dropdown
+    self.main_menu = DropDown()
+    
+    # Submenu buttons
+    for i in range(2):
+        submenu_button = Button(text=f'Submenu {i + 1}')
+        submenu_button.bind(on_release=self.open_submenu)
+        self.main_menu.add_widget(submenu_button)
+
+    def open_submenu(self, instance):
+        # Close the main menu dropdown
+        self.main_menu.dismiss()
+
+        # Create a new dropdown for the submenu
+        submenu = DropDown()
+
+        # Add items to the submenu
+        for i in range(3):
+            submenu_button = Button(text=f'Submenu Item {i + 1}')
+            submenu.add_widget(submenu_button)
+
+        # Open the submenu dropdown
+        submenu.open(instance)
+    #'''
 
 ###############################################################################
 ###############################################################################
@@ -65,3 +108,4 @@ class GenesysApp(App):
 
 if __name__ == '__main__':
     GenesysApp().run()
+    

@@ -1,15 +1,15 @@
 import csv
 import argparse
 
-# ALL OF THIS SHOULD BE PRIVATE
-# python IsolateCodes -csv ../datos/Hotel_Reservations.csv -col room_type_reserved
-# python IsolateCodes -csv ../datos/BVBRC_sp_gene_reverse_transcriptase.csv -col BRC ID
+# Execution through command line:
+# python IsolateCodes.py ../datos/Hotel_Reservations.csv room_type_reserved
+# python IsolateCodes.py ../datos/BVBRC_sp_gene_reverse_transcriptase.csv BRC ID
 
 ##############################################################################
 ##############################################################################
 ##############################################################################
 ##############################################################################
-
+# Creates a parser that allows us to manipulate the arguments
 def make_parser():
     # Create ArgumentParser object
     parser = argparse.ArgumentParser(description='Argument parser for csv pathfile and column name which will be isolated')
@@ -24,84 +24,109 @@ def make_parser():
 ##############################################################################
 ##############################################################################
 ##############################################################################
-# It asks the user to introduce the path to a csv file and the name of the column they want to
-# isolate in a new csv, and calls the function that reads the given csv. NO ANYMORE
+# For security reasons, we are going to create the new csv file with the isolated column using private methods of a class
 
-def get_data():
-    args_parser = make_parser() # make parser
-    args = args_parser.parse_args() # parse parser arguments
-    return ( process_codes(args.path_to_csv, args.id_column_name) ) # access arguments
+class IsolateColumn:
 
-##############################################################################
-##############################################################################
-##############################################################################
-##############################################################################
-# PRE: "header" must have the same number of columns as "data"
-# It takes a header and some data to save in a given csv path
+    __returned_value = -1
+    __csv_path = ""
+    __column_name = ""
 
-def save_csv_code_column(csv_name, header, data):
-    return_status = 3
-    try:
-        with open(csv_name, 'w', newline='') as csv_file:
-            for column in header:
-                csv_file.write(str(column)+'\n') # write column's name
-            for row in data:
-                csv_file.write(str(row)+'\n')   # write each row
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
 
-        print("CSV file saved successfully")
-        return_status = 0
+    def __init__(self, csv_path, column_name):
+        self.__csv_path = csv_path
+        self.__column_name = column_name
 
-    except Exception as e:
-        print(f"Unexpected error occurred: {e}")
-
-    return return_status
-
-##############################################################################
-##############################################################################
-##############################################################################
-##############################################################################
-# It opens a certain path to a csv file, opens it and saves a new csv file that contains
-# the given column name
-
-def process_codes(csv_path, column_name):
-    return_status = 3
-    try:
-        with open(csv_path, 'r') as csv_file:
-            csv_reader = csv.DictReader(csv_file) # Let's trait csv file as a list
-
-            # Check if "code_column" exists
-            if column_name not in csv_reader.fieldnames:
-                print(f"Column '{column_name}' not found.")
-                return_status = 1
-            
-            # Get column's values without column's name
-            gotten_column = [row[column_name] for row in csv_reader]
-            
-            # Save column
-            print(f"Column '{column_name}' found. Starting saving...")
-            new_csv_path = csv_path[:-4] + "_new.csv" # Remove the last 4 characters of csv's path: ".csv" and add "_new.csv" instead
-            data_header = [str(column_name)]
-            return_status = ( save_csv_code_column(new_csv_path, data_header, gotten_column) ) # call to save column
-
-            #for row in gotten_column:
-                #print(row)
-
-    except FileNotFoundError:
-        print(f"Cannot find '{csv}' file.")
-        return_status = 2
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    # This method allows the user to know if the execution was succesful
+    def get_returned_value(self):
+        return self.__returned_value
     
-    except Exception as e:
-        print(f"Unexpected error occurred: {e}")
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    # This is the method which will be called by the user to create a new csv with the isolated column
+    def run(self):
+        self.__returned_value = self.__process_codes()
+    
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    # This method isolates the requested column form the specified csv path and calls
+    # to "save_csv_code_column" to save the column in a new csv
+    def __process_codes(self):
+        return_status = 3
+        try:
+            with open(self.__csv_path, 'r') as csv_file:
+                csv_reader = csv.DictReader(csv_file) # We trait the csv file as a list
+                
+                # Isolate column's values
+                try:
+                    gotten_column = [row[self.__column_name] for row in csv_reader]
+                
+                # Save column
+                    print(f"Column '{self.__column_name}' found. Starting saving...")
+                    new_csv_path = self.__csv_path[:-4] + "_new.csv" # Remove the last 4 characters of csv's path: ".csv" and add "_new.csv" instead
+                    data_header = [str(self.__column_name)]
+                    return_status = ( self.__save_csv_code_column(new_csv_path, data_header, gotten_column) ) # call that will save the column in a new csv
 
-    return return_status
+                except Exception as e:
+                    print(f"Unexpected error occurred while trying to access the column: {e}")
+                    return_status = 1
+
+        except FileNotFoundError:
+            print(f"Cannot find '{self.__csv_path}'")
+            return_status = 2
+        
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
+
+        return return_status
+    
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    ##############################################################################
+    
+    def __save_csv_code_column(self, csv_name, header, data):
+        return_status = 3 # This value will change to 0 if the method executes succesfully
+        try:
+            with open(csv_name, 'w', newline='') as csv_file:
+                for column in header:
+                    csv_file.write(str(column)+'\n') # write column's name
+                for row in data:
+                    csv_file.write(str(row)+'\n')   # write each row
+
+            print("CSV file saved successfully")
+            return_status = 0
+
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
+
+        return return_status
 
 ##############################################################################
 ##############################################################################
 ##############################################################################
 ##############################################################################
+
 # MAIN section. It runs the program
 
-return_status = get_data()
+args_parser = make_parser() # make parser
+args = args_parser.parse_args() # parse parser arguments
+
+isolatecolumnobject = IsolateColumn(args.path_to_csv, args.id_column_name) # Create an object to isolate the given column name in the given csv path
+isolatecolumnobject.run()
+return_status = isolatecolumnobject.get_returned_value()
 
 #while return_status != 0:
 #    get_data()
