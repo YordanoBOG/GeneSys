@@ -2,4 +2,4 @@
 -> NO pip3 install biopython (instala la 1.83) || conda install --name <my_env> biopython=1.78
 -> conda install -n <name_env> kivy -c conda-forge || -> python -m pip install kivy -v 2.3.0 (kivy_examples) -> añade lo que hay entre paréntesis para descargar ejemplos de prueba
 
--> BV-BRC CLI 1.040
+-> BV-BRC CLI 1.040. Go to https://github.com/BV-BRC/BV-BRC-CLI/releases and install the .deb version in Ubuntu. Authomatize the process via a bash/yaml/python script

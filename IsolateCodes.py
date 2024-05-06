@@ -3,7 +3,7 @@ import argparse
 
 # Execution through command line:
 # python IsolateCodes.py ../datos/Hotel_Reservations.csv room_type_reserved
-# python IsolateCodes.py ../datos/BVBRC_sp_gene_reverse_transcriptase.csv BRC ID
+# python IsolateCodes.py ../datos/BVBRC_slatt_domain-containing_protein.csv BRC ID
 
 ##############################################################################
 ##############################################################################
