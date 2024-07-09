@@ -45,6 +45,40 @@ def convert_to_scientific_notation(string_param):
 # Checks if a given pathname ends with ".fasta" string
 def check_fasta_format(pathname):
     result = False
-    if pathname[-6:].__eq__(".fasta"):
+    if str(pathname)[-6:].__eq__(".fasta"):
+        result = True
+    return result
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+# Checks if a given pathname ends with ".json" string
+def check_json_format(pathname):
+    result = False
+    if str(pathname)[-5:].__eq__(".json"):
+        result = True
+    return result
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+# Checks if a given pathname ends with ".txt" string
+def check_txt_format(pathname):
+    result = False
+    if str(pathname)[-4:].__eq__(".txt"):
+        result = True
+    return result
+
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+# Checks if a given pathname ends with ".csv" string
+def check_csv_format(pathname):
+    result = False
+    if str(pathname)[-4:].__eq__(".csv"):
         result = True
     return result

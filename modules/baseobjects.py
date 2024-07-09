@@ -11,7 +11,8 @@ from abc import abstractmethod
 from importlib import import_module
 from genericpath import exists
 import json
-#import subprocess
+import subprocess
+import time
 #import argparse
 #import csv
 #from abc import abstractmethod
@@ -31,7 +32,8 @@ class Task():
     all Task's subclasses objects
     """
 
-    # The main parameter of the class is a dictionary object that defines the operations linked to an specific Task object
+    _returned_info = "" # protected, not private
+    _returned_value = -1
 
     def __init__(self):
         pass
@@ -41,12 +43,16 @@ class Task():
         """Allow parameterization of a Task
         """
         parameters = {}
+        parameters['returned_info'] = self._returned_info
+        parameters['returned_value'] = self._returned_value
         return parameters
 
     @abstractmethod    
     def set_parameters(self, parameters):
         """Will update the values of the parameters of a Task
         """
+        self._returned_info = parameters['returned_info']
+        self._returned_value = parameters['returned_value']
         pass
 
     ###### TASK EXECUTION ######
@@ -167,8 +173,8 @@ class Workflow(Task):
     re-applied over different data in order to make efficient bioinformatic analyses
     """
 
-    # __tasks_parameters = {} # It may be necesary to store a dictionary with all the parameters of all the tasks that belong to the workflow
     __tasks = [] # empty list of tasks
+    __results_file = "./workflow_results.txt" # Path to a .txt file that will save the returned info and returned value of the workflow
 
     def __init__(self, tasks = []):
         for task in tasks:
@@ -179,8 +185,9 @@ class Workflow(Task):
             initialize the class object to apply a Task.
             It allows to implement Reflection
         """
-        parameters = {}
+        parameters = super().get_parameters()
         parameters['tasks'] = self.__tasks
+        parameters['results_file'] = self.__results_file
         return parameters
 
     def set_parameters(self, parameters: dict):
@@ -189,7 +196,8 @@ class Workflow(Task):
         """
         super().set_parameters(parameters)
         self.__tasks = parameters['tasks'] # PRE: there is a tag called "tasks" previously defined in the dictionary
-
+        self.__results_file = parameters['results_file']
+    
     """
     GET METHODS
     """
@@ -240,11 +248,29 @@ class Workflow(Task):
         :return: The object with all the Tasks applied.
         :rtype: DataObject, DataFrame
         """
-        for task in self.__tasks:
-            result = task.run() # do = task.run(obj) It requires that each task can be applied right after the previous one with their own parameters
-        return result
+        try:
+            for task in self.__tasks:
+                task.run() # It requires that each task can be applied right after the previous one with their own parameters
+                task_dict = task.to_dict()
+                self._returned_info += '\n-------------- TASK ' + str(task_dict['type']) + ': -------------\n' + str(task_dict['returned_info']) + '\nRETURNED VALUE: ' + str(task_dict['returned_value'])
+            self._returned_value = 0
+            self.__save_results() # generate de results .txt file
+        except SystemExit:
+            print("\n\n\nWorkflow stopped forcefully\n\n")
 
+        
+    def __save_results(self):
+        # We save the execution results of the workflow in a text file
+        touch_result = subprocess.run(['touch', self.__results_file]) # Create the results info file
+        if touch_result.returncode == 0:
+            info = self._returned_info + "\nWORKFLOW'S RETURNED VALUE: " + str(self._returned_value)
+            results_file = open(self.__results_file, 'w')
+            results_file.write(info) # OVERWRITE
+        else:
+            message = f"\n\n\nERROR WHILE CREATING WORKFLOW'S RESULTS FILE: {touch_result.stderr}\n" # Error message
+            print(message)
 
+    
     def generate_json(self, path = "./workflow.json"):
         """
         Generate an external file to save every task of the workflow
@@ -301,6 +327,7 @@ class Workflow(Task):
         result = '\n'
         for task in self.get_tasks():
             result += (task.__str__()) + '\n---------------\n'
+        result += 'results file: ' + str(self.__results_file) + '\n'
         return result
     
     def show_info(self):
@@ -310,6 +337,7 @@ class Workflow(Task):
         result = '\n'
         for task in self.get_tasks():
             result += (task.show_info()) + '\n---------------\n'
+        result += 'results file: ' + str(self.__results_file) + '\n'
         return result
         
     def print_workflow(self):

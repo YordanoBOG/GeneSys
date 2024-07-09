@@ -24,47 +24,29 @@ from modules.PATRIC_protein_processing.patric_protein_processing_utils import sa
 
 class GenerateFasta(Task):
 
-    __returned_value = -1
-    __returned_info = ""
     __csv_codes_path = ""
-    __fasta_folder_path = ""
-    __results_file_pathname = "" # This file will contain self.__returned_info and self.__returned_value
     __fasta_pathname = "" # This is the pathname of the final .fasta file that would store all the proteins. It might be taken as a parameter by the next task of a patricproteinprocessing workflow
 
     ###### INIT ######
 
-    def __init__(self, path_to_protein_codes_csv="./", fasta_folder_path="./"):
+    def __init__(self, path_to_protein_codes_csv="./", fasta_folder_path="./proteins.fasta"):
         super().__init__()
         self.__csv_codes_path = path_to_protein_codes_csv
-        self.__fasta_folder_path = fasta_folder_path
-        if fasta_folder_path[-1].__eq__("/"): # If the given pathname ends with "/"
-            self.__results_file_pathname = self.__fasta_folder_path+"generate_fasta_results.txt"
-            self.__fasta_pathname = self.__fasta_folder_path+"proteins.fasta" # This is the fasta file in which we will save protein strings
-        else:
-            self.__results_file_pathname = self.__fasta_folder_path+"/generate_fasta_results.txt"
-            self.__fasta_pathname = self.__fasta_folder_path+"/proteins.fasta"
+        self.__fasta_pathname = fasta_folder_path # This is the fasta file in which we will save protein strings
 
     ###### GET/SET METHODS ######
 
     # We include all the parameters that this class has into a dictionary, and we return that dictionary
     def get_parameters(self) -> dict:
         parameters = super().get_parameters()
-        parameters['returned_value'] = self.__returned_value
-        parameters['returned_info'] = self.__returned_info
         parameters['csv_codes_path'] = self.__csv_codes_path
-        parameters['fasta_folder_path'] = self.__fasta_folder_path
-        parameters['results_file_pathname'] = self.__results_file_pathname
         parameters['fasta_pathname'] = self.__fasta_pathname
         return parameters
     
     # We set the parameters of the class from a dictionary received as an argument, both the superclass parameters and the current class ones
     def set_parameters(self, parameters):
         super().set_parameters(parameters)
-        self.__returned_value = parameters['returned_value']
-        self.__returned_info = parameters['returned_info']
         self.__csv_codes_path = parameters['csv_codes_path']
-        self.__fasta_folder_path = parameters['fasta_folder_path']
-        self.__results_file_pathname = parameters['results_file_pathname']
         self.__fasta_pathname = parameters['fasta_pathname']
     
     # There is a value that we do not want to show when we get this task as a string
@@ -80,14 +62,6 @@ class GenerateFasta(Task):
     def run(self):
         self.__acces_codes()
 
-        # We save the execution results in a text file
-        touch_result = subprocess.run(['touch', self.__results_file_pathname]) # Create the results info file
-        if touch_result.returncode == 0:
-            # Write class' metadata into the results file
-            info = self.__returned_info + "\n" + str(self.__returned_value)
-            results_file = open(self.__results_file_pathname, 'w')
-            results_file.write(info)
-
     # This method isolates the ID's column from the specified csv path and calls
     # to BV-BRC CLI commands in order to get the protein string and save it in as a new fasta file
     def __acces_codes(self):
@@ -97,8 +71,8 @@ class GenerateFasta(Task):
                 
                 # If the csv file has more than a column, then it is not a proper csv file
                 if len(csv_reader.fieldnames) != 1:
-                    self.__returned_info = "ERROR. CSV codes file must have only one column, corresponding to PATRIC protein codes\n"
-                    self.__returned_value = 1
+                    self._returned_info = "ERROR. CSV codes file must have only one column, corresponding to PATRIC protein codes\n"
+                    self._returned_value = 1
                 else:
                     try:
                         column_name = csv_reader.fieldnames[0] # We know that there is only one column so the first column is the column that we are looking for
@@ -106,16 +80,16 @@ class GenerateFasta(Task):
                         self.__obtain_protein_strings(codes_column) # Method that creates a fasta file in the proper path
 
                     except Exception as e:
-                        self.__returned_info = f"Unexpected error occurred while trying to access the CSV codes file: {e}\n"
-                        self.__returned_value = 2
+                        self._returned_info = f"Unexpected error occurred while trying to access the CSV codes file: {e}\n"
+                        self._returned_value = 2
 
         except FileNotFoundError:
-            self.__returned_info = f"Cannot find '{self.__csv_path}' file"
-            self.__returned_value = 3
+            self._returned_info = f"Cannot find '{self.__csv_path}' file"
+            self._returned_value = 3
         
         except Exception as e:
-            self.__returned_info = f"Unexpected error occurred while trying to access the CSV codes file: {e}\n"
-            self.__returned_value = 2
+            self._returned_info = f"Unexpected error occurred while trying to access the CSV codes file: {e}\n"
+            self._returned_value = 2
     
     # This function calls BV-BRC commands and, for each protein code, gets its protein string
     # value, and for each protein, calls a function that saves it as a fasta file in the appropiate path
@@ -135,25 +109,25 @@ class GenerateFasta(Task):
                                                                                                     # "id feature.aa_sequence <given_code> <returned_string>" as the employed BV-BRC "feature.aa_sequence" tool returns a 2x2 matrix
                         if protein_string!="feature.aa_sequence\n": # If we have isolated the string "feature.aa_sequence\n", it means that the BV-BRC command that we run in "getprotein.sh" has not found any asociated protein to the code
                             if self.__code_not_procesed(protein_string, procesed_proteins): # Before saving the protein, we check is it was already saved
-                                self.__returned_info += save_fasta_string(protein_string, protein_code, fasta_file) # Call the function that saves the .fasta file.
+                                self._returned_info += save_fasta_string(protein_string, protein_code, fasta_file) # Call the function that saves the .fasta file.
                                 procesed_proteins.append(protein_string) # We add the protein into the procesed proteins list once it is saved
                             else:
-                                self.__returned_info += f"\nProtein with code <{protein_code}> and string <<<<< {protein_string} >>>>>\n turned out to reference an ALREADY SAVED protein sequence\n"
+                                self._returned_info += f"\nProtein with code <{protein_code}> and string <<<<< {protein_string} >>>>>\n turned out to reference an ALREADY SAVED protein sequence\n"
                                 continue # Jump directly to the next step of the loop
                         else:
-                            self.__returned_info += f"\nCode <{protein_code}> did NOT return any asociated protein string\n"
+                            self._returned_info += f"\nCode <{protein_code}> did NOT return any asociated protein string\n"
                             continue # Jump directly to the next step of the loop
                     else:
                         # Error
-                        self.__returned_info += f"\nError while getting {protein_code} code: {get_protein_bash_command_result.stderr}"
-                        self.__returned_value = 4
+                        self._returned_info += f"\nError while getting {protein_code} code: {get_protein_bash_command_result.stderr}"
+                        self._returned_value = 4
                 fasta_file.close()
             else:
-                self.__returned_info += f"\nUnexpected error occurred while creating the .fasta file: {touch_result.stderr}"
-                self.__returned_value = 5
+                self._returned_info += f"\nUnexpected error occurred while creating the .fasta file: {touch_result.stderr}"
+                self._returned_value = 5
         except Exception as e:
-            self.__returned_info += f"\nUnexpected error occurred while getting protein strings from protein codes: {e}"
-            self.__returned_value = 6
+            self._returned_info += f"\nUnexpected error occurred while getting protein strings from protein codes: {e}"
+            self._returned_value = 6
 
     # This function checks if a certain code is already in a list of previously procesed codes.
     # It is called in order to avoid saving two different .fasta files that contain the same protein

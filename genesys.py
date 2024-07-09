@@ -10,9 +10,10 @@ from modules.PATRIC_protein_processing.isolate_column import IsolateColumn
 from modules.PATRIC_protein_processing.generate_fasta import GenerateFasta
 from modules.PATRIC_protein_processing.reduce_sample import ReduceSample
 from modules.baseobjects import Workflow
-from utils.kivy_utils import update_label_text_size, convert_to_scientific_notation, check_fasta_format
+from utils.kivy_utils import update_label_text_size, check_fasta_format, check_json_format, check_txt_format, check_csv_format
 
 import threading # We will use multithreading to execute long tasks while allowing the user to keep using GeneSys' UI
+import ctypes
 
 #import smtplib
 #from email.message import EmailMessage
@@ -71,11 +72,18 @@ class ReduceSampleScreen(GridLayout):
         self.reduced_sample_fasta_text_input = TextInput(multiline=False)
         self.add_widget(self.reduced_sample_fasta_text_input)
 
-        limit_e_value_text_label = Label(text="Please, introduce the e-value which will be used as the minimum required in order to consider that two proteins are different (notation: 1e<your_value>)(1e-20 by default): ")
+        '''limit_e_value_text_label = Label(text="Please, introduce the e-value which will be used as the minimum required in order to consider that two proteins are different (notation: 1e<your_value>)(1e-20 by default): ")
         update_label_text_size(limit_e_value_text_label)
         self.add_widget(limit_e_value_text_label)
         self.limit_e_value_text_input = TextInput(multiline=False)
         self.add_widget(self.limit_e_value_text_input)
+        #'''
+
+        limit_percentage_text_label = Label(text="Please, introduce the similarity percentage (just the number) which will be used as the minimum required in order to consider that two proteins are different (85 by default): ")
+        update_label_text_size(limit_percentage_text_label)
+        self.add_widget(limit_percentage_text_label)
+        self.limit_percentage_text_input = TextInput(multiline=False)
+        self.add_widget(self.limit_percentage_text_input)
         #'''
 
         # Create a button with margins
@@ -104,22 +112,28 @@ class ReduceSampleScreen(GridLayout):
         if reduced_sample_pathname.__eq__(""): # In case the user did not specify any pathname
             reduced_sample_pathname = "./reduced_proteins.fasta"
 
-        limit_e_value_text = self.limit_e_value_text_input.text
-        if limit_e_value_text.__eq__(""):
-            limit_e_value_text = "1e-20"
-        limit_e_value = convert_to_scientific_notation(limit_e_value_text)
-        
-        if not limit_e_value: # Validate if e-value format is correct
-            self.limit_e_value_text_input.text = "INCORRECT FORMAT"
-        if check_fasta_format(fasta_pathname): # Validate fasta_pathname as a fasta file
-            self.reduced_sample_fasta_text_input.text = "NOT A FASTA FORMAT"
-        if check_fasta_format(reduced_sample_pathname): # Validate reduced_sample_pathname as a fasta file
+        limit_percentage_text = self.limit_percentage_text_input.text
+        if limit_percentage_text.__eq__(""):
+            limit_percentage_text = "85"
+        #limit_e_value = convert_to_scientific_notation(limit_percentage_text)
+        try:
+            limit_percentage = float(limit_percentage_text)
+            if limit_percentage not in range(0,100):
+                limit_percentage = False
+        except:
+            limit_percentage = False
+
+        if not limit_percentage: # Validate if e-value format is correct
+            self.limit_percentage_text_input.text = "INCORRECT FORMAT"
+        if not check_fasta_format(fasta_pathname): # Validate fasta_pathname as a fasta file
             self.fasta_pathname_text_input.text = "NOT A FASTA FORMAT"
-        if limit_e_value and check_fasta_format(fasta_pathname) and check_fasta_format(reduced_sample_pathname):
+        if not check_fasta_format(reduced_sample_pathname): # Validate reduced_sample_pathname as a fasta file
+            self.reduced_sample_fasta_text_input.text = "NOT A FASTA FORMAT"
+        if limit_percentage and check_fasta_format(fasta_pathname) and check_fasta_format(reduced_sample_pathname):
             # Create a new task only if the format of the given arguments is correct
             reduce_sample = ReduceSample(fasta_pathname=fasta_pathname,
                                          pathname_to_reduced_proteins=reduced_sample_pathname,
-                                         e_value=limit_e_value) # data/muestra_reducida.csv data/fasta_pruebas
+                                         percentage=limit_percentage)
             self.__workflow.add_task(reduce_sample)
 
             # Return to the workflow screen passing the updated workflow
@@ -186,14 +200,22 @@ class FastaGenerationScreen(GridLayout):
         
         saving_pathname = self.folder_pathname.text
         if saving_pathname.__eq__(""): # In case the user did not specifed any path
-            saving_pathname = "./"
-        gen_fasta = GenerateFasta(csv_codes_pathname, saving_pathname) # data/muestra_reducida.csv data/fasta_pruebas
-        self.__workflow.add_task(gen_fasta)
+            saving_pathname = "./proteins.fasta"
 
-        # Return to the workflow screen passing the updated workflow
-        self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        task_screen = TaskScreen(self.__workflow)
-        self.parent.add_widget(task_screen)
+        if not check_fasta_format(saving_pathname):
+            self.folder_pathname.text = "NOT A FASTA FORMAT"
+
+        if not check_csv_format(csv_codes_pathname):
+            self.csv_codes_path.text = "NOT A CSV FORMAT"
+        
+        if check_fasta_format(saving_pathname) and check_csv_format(csv_codes_pathname):
+            gen_fasta = GenerateFasta(csv_codes_pathname, saving_pathname) # data/muestra_reducida.csv data/fasta_pruebas
+            self.__workflow.add_task(gen_fasta)
+
+            # Return to the workflow screen passing the updated workflow
+            self.clear_widgets() # Clean the objects in the screen before adding the new ones
+            task_screen = TaskScreen(self.__workflow)
+            self.parent.add_widget(task_screen)
 #'''
 
 ###############################################################################
@@ -236,18 +258,17 @@ class IsolateCodesScreen(GridLayout):
         column_name = self.columnname.text
         if column_name.__eq__(""): # In case the user did not specifed any column
             column_name = "BRC ID"
-        isolate_column = IsolateColumn(csv_pathname, column_name) # data/BVBRC_slatt_domain-containing_protein.csv BRC ID
-        self.__workflow.add_task(isolate_column)
-        
-        # Return to the task selection screen passing the updated workflow
-        self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        task_screen = TaskScreen(self.__workflow)
-        self.parent.add_widget(task_screen)
-        '''
-        isolate_column.run()
-        print(isolate_column.get_parameters()['returned_info'])
-        #subprocess.run(["python", "utils/IsolateCodes.py", csv_path, column_name]) # csv_path and column_name are arguments
-        '''
+
+        if check_csv_format(csv_pathname):
+            isolate_column = IsolateColumn(csv_pathname, column_name) # data/BVBRC_slatt_domain-containing_protein.csv BRC ID
+            self.__workflow.add_task(isolate_column)
+            
+            # Return to the task selection screen passing the updated workflow
+            self.clear_widgets() # Clean the objects in the screen before adding the new ones
+            task_screen = TaskScreen(self.__workflow)
+            self.parent.add_widget(task_screen)
+        else:
+            self.csvpath.text = "NOT A CSV FORMAT"
 #'''
 
 ###############################################################################
@@ -341,12 +362,12 @@ class GenerateJsonScreen(GridLayout):
         # Welcome message
         
         # Add text boxes
-        self.add_widget(Label(text="Introduce the path where to save .json workflow (current path by default): "))
-        self.jsonpath = TextInput(multiline=False)
-        self.add_widget(self.jsonpath)
-        self.add_widget(Label(text="Introduce the name of the json file (including <.json> ending)(<workflow.json> by default): "))
-        self.jsonname = TextInput(multiline=False)
-        self.add_widget(self.jsonname)
+        self.add_widget(Label(text="Introduce the pathname where to save .json workflow (./workflow.json by default): "))
+        self.jsonpathname = TextInput(multiline=False)
+        self.add_widget(self.jsonpathname)
+        #self.add_widget(Label(text="Introduce the name of the json file (including <.json> ending)(<workflow.json> by default): "))
+        #self.jsonname = TextInput(multiline=False)
+        #self.add_widget(self.jsonname)
 
         # Create a button with margins
         exec_generate_json_button = Button(text='Generate .json file', size_hint=(None, None), size=(150, 50), on_press=self.generate_json)
@@ -355,18 +376,16 @@ class GenerateJsonScreen(GridLayout):
 
     # Call the script that isolates gene codes with the given arguments
     def generate_json(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
-        # Call to generate_json Workflow class method
-        if self.jsonpath.text == "":
-            self.jsonpath.text = "."
-        if self.jsonname.text == "":
-            self.jsonname.text = "workflow.json"
-        json_pathname = self.jsonpath.text + "/" + self.jsonname.text
-        self.__workflow.generate_json(path=json_pathname)
-        
-        # Return to the Workflow screen
-        self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        workflow_screen = WorkflowScreen(self.__workflow)
-        self.parent.add_widget(workflow_screen)
+        if self.jsonpathname.text.__eq__(""):
+            self.jsonpathname.text = "./workflow.json"
+        json_pathname = self.jsonpathname.text
+        if check_json_format(json_pathname):
+            self.__workflow.generate_json(path=json_pathname) # Call to generate_json Workflow class method
+            self.clear_widgets() # Clean the objects in the screen before adding the new ones
+            workflow_screen = WorkflowScreen(self.__workflow)
+            self.parent.add_widget(workflow_screen)
+        else:
+            self.jsonpathname.text = "NOT A JSON FORMAT"
 
 ###############################################################################
 ###############################################################################
@@ -399,14 +418,16 @@ class GenerateWorkflowFromJsonScreen(GridLayout):
 
     def generate_workflow(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
         # Load workflow from json file
-        if self.jsonpathname.text == "":
-            self.jsonpathname.text = "./workflow.json"
-        self.__workflow.get_from_json(json_path=self.jsonpathname.text)
-        
-        # Return to the Workflow screen passing the updated workflow
-        self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        workflow_screen = WorkflowScreen(self.__workflow)
-        self.parent.add_widget(workflow_screen)
+        json_pathname = self.jsonpathname.text
+        if json_pathname == "":
+            json_pathname = "./workflow.json"
+        if check_json_format(json_pathname):
+            self.__workflow.get_from_json(json_path=json_pathname)            
+            self.clear_widgets() # Clean the objects in the screen before adding the new ones
+            workflow_screen = WorkflowScreen(self.__workflow)
+            self.parent.add_widget(workflow_screen)
+        else:
+            self.jsonpathname.text = "NOT A JSON FORMAT"
 
 ###############################################################################
 ###############################################################################
@@ -418,26 +439,20 @@ class WorkflowScreen(GridLayout):
     # Label que te diga si actualmente hay alguna tarea ejecutándose o no. Requerirá un booleano en la clase Workflow que especifique si se está ejecutando el objeto workflow o no.
     # Clustering y módulos de ciencia de datos
     __workflow = None # This class stores a GeneSys workflow and implements ways to manipulate it
-    run_workflow_button = None
     
     def __init__(self, workflow=Workflow(), **kwargs): # It receives a workflow set as a new, empty workflow by default
         super(WorkflowScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
 
+        self.workflow_thread = None # This is the reference to the thread that will run the workflow
         self.__workflow = workflow
         self.rows = 9 # We ask the GridLayout to manage its children in 1 column and 6 rows.
         self.cols = 1
 
         # Insert welcome message
 
-        # Create a Label to display the execution status of the current workflow
-        '''self.status_label = Label(text="Task still not started",
-                                  halign='center',
-                                  valign='middle')
-        self.add_widget(self.status_label)'''
-
-        add_tasks_button = Button(text='Add tasks to the workflow', size_hint=(None, None), size=(150, 50), on_press=self.open_add_tasks)
-        add_tasks_button.bind(texture_size=add_tasks_button.setter('size'))
-        self.add_widget(add_tasks_button)
+        self.add_tasks_button = Button(text='Add tasks to the workflow', size_hint=(None, None), size=(150, 50), on_press=self.open_add_tasks)
+        self.add_tasks_button.bind(texture_size=self.add_tasks_button.setter('size'))
+        self.add_widget(self.add_tasks_button)
 
         rm_last_task_button = Button(text='Remove last task from the workflow', size_hint=(None, None), size=(150, 50), on_press=self.rm_last_task)
         rm_last_task_button.bind(texture_size=rm_last_task_button.setter('size'))
@@ -448,23 +463,28 @@ class WorkflowScreen(GridLayout):
         self.add_widget(clean_workflow_button)
 
         # Save workflow button that generates a json with the current workflow parameters and objects
-        save_workflow_button = Button(text='Save workflow in .json format', size_hint=(None, None), size=(150, 50), on_press=self.save_workflow)
-        save_workflow_button.bind(texture_size=save_workflow_button.setter('size'))
-        self.add_widget(save_workflow_button)
+        self.save_workflow_button = Button(text='Save workflow in .json format', size_hint=(None, None), size=(150, 50), on_press=self.save_workflow)
+        self.save_workflow_button.bind(texture_size=self.save_workflow_button.setter('size'))
+        self.add_widget(self.save_workflow_button)
 
         # Load workflow button that fills the workflow with the data stored in a json file
-        load_workflow_button = Button(text='Load workflow from a .json file', size_hint=(None, None), size=(150, 50), on_press=self.load_workflow)
-        load_workflow_button.bind(texture_size=load_workflow_button.setter('size'))
-        self.add_widget(load_workflow_button)
+        self.load_workflow_button = Button(text='Load workflow from a .json file', size_hint=(None, None), size=(150, 50), on_press=self.load_workflow)
+        self.load_workflow_button.bind(texture_size=self.load_workflow_button.setter('size'))
+        self.add_widget(self.load_workflow_button)
 
         self.run_workflow_button = Button(text='Run workflow', size_hint=(None, None), size=(150, 50), on_press=self.run_workflow)
         self.run_workflow_button.bind(texture_size=self.run_workflow_button.setter('size'))
         self.add_widget(self.run_workflow_button)
 
+        self.cancel_workflow_button = Button(text='Cancel workflow', size_hint=(None, None), size=(150, 50), on_press=self.cancel_workflow)
+        self.cancel_workflow_button.bind(texture_size=self.cancel_workflow_button.setter('size'))
+        self.add_widget(self.cancel_workflow_button)
+        self.cancel_workflow_button.disabled = True
+
         # Create a button which allows you to return to the main menu
-        main_menu_button = Button(text='Return to main menu (the current workflow will be deleted. It is recommended to save it first)', size_hint=(None, None), size=(150, 50), on_press=self.return_to_main_menu)
-        main_menu_button.bind(texture_size=main_menu_button.setter('size'))
-        self.add_widget(main_menu_button)
+        self.main_menu_button = Button(text='Return to main menu (the current workflow will be deleted. It is recommended to save it first)', size_hint=(None, None), size=(150, 50), on_press=self.return_to_main_menu)
+        self.main_menu_button.bind(texture_size=self.main_menu_button.setter('size'))
+        self.add_widget(self.main_menu_button)
 
         # Show current workflow in a non-editable text window
         self.show_workflow_info()
@@ -502,18 +522,20 @@ class WorkflowScreen(GridLayout):
 
     def run_workflow(self, instance):
         # Execute the workflow in a separated thread
-        #self.status_label.text = "Task started..."
-        threading.Thread(target=self.execute_workflow).start() # We must specifically define a funciton that runs the workflow, otherwise the workflow will be executed before calling to task_thread.start()
-        self.run_workflow_button.disabled = True
+        self.workflow_thread = threading.Thread(target=self.execute_workflow) # We must specifically define a funciton that runs the workflow, otherwise the workflow will be executed before calling to task_thread.start()
+        self.run_workflow_button.disabled = True # Disable buttons
+        self.add_tasks_button.disabled = True
+        self.save_workflow_button.disabled = True
+        self.load_workflow_button.disabled = True
+        self.main_menu_button.disabled = True
+        self.cancel_workflow_button.disabled = False # Able cancel button
+        self.workflow_thread.start()
 
     def execute_workflow(self):
-        workflow_info = self.__workflow.show_info() # We should get a specific value that helps recognizing which workflow is on execution
         self.__workflow.run()
+        from kivy.clock import Clock # Update the UI from the main thread using Clock
+        Clock.schedule_once(lambda dt: self.on_task_complete(self.__workflow.show_info())) # creates an anonymous function that takes the dt parameter and calls self.on_task_complete and allows to pass workflow_info as a parameter, otherwise, it would be imposible to pass dt and workflow_info at the same time
 
-        # Update the UI from the main thread using Clock
-        from kivy.clock import Clock
-        Clock.schedule_once(lambda dt: self.on_task_complete(workflow_info)) # creates an anonymous function that takes the dt parameter and calls self.on_task_complete and allows to pass workflow_info as a parameter, otherwise, it would be imposible to pass dt and workflow_info at the same time
-    
     def on_task_complete(self, workflow_data=""):
         # Create the popup content
         message_text = "Your Genesys workflow is completed:\n\n" + workflow_data
@@ -527,7 +549,28 @@ class WorkflowScreen(GridLayout):
         popup.open() # Open the popup
 
         self.run_workflow_button.disabled = False # Recover the button functionality (in case we changed of screen, this line will not have any effect)
+        self.add_tasks_button.disabled = False
+        self.save_workflow_button.disabled = False
+        self.load_workflow_button.disabled = False
+        self.main_menu_button.disabled = False
+        self.cancel_workflow_button.disabled = True
 
+    def cancel_workflow(self, instance):
+        if self.workflow_thread is not None: # Kill workflow's execution
+            self._kill_thread(self.workflow_thread)
+            self.workflow_thread = None
+    
+    def _kill_thread(self, thread):
+        if not thread.is_alive():
+            return
+        exc = ctypes.py_object(SystemExit)
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread.ident), exc)
+        if res == 0:
+            raise ValueError("Nonexistent thread id")
+        elif res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread.ident, None)
+            raise SystemError("PyThreadState_SetAsyncExc failed")
+    
     def return_to_main_menu(self, instance):
         self.__workflow.clean()
         self.clear_widgets() # Clean the objects in the screen before adding the new ones
@@ -548,6 +591,57 @@ class WorkflowScreen(GridLayout):
         scroll_view.add_widget(workflow_info_label)
         scroll_view.id = 'WorkflowScrollView' # It is crucial to asign an ID to this widget as we may need to remove it specifically at some point
         self.add_widget(scroll_view)
+
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+# This screen preceeds the creation of a workflow and asks the user to give
+# a .txt pathname where to save the results given by workflow's tasks
+
+# SIGUE ABAJO
+class SelectResultsPathnameWorkflowScreen(GridLayout):
+
+    __workflow = None
+
+    def __init__(self, workflow=Workflow(), **kwargs):
+        super(SelectResultsPathnameWorkflowScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
+        
+        self.__workflow = workflow
+        self.rows = 3
+        self.cols = 2
+
+        # Welcome message
+        
+        # Add text boxes
+        self.add_widget(Label(text="Introduce the pathname of the .txt results file of the workflow (<./workflow_results.txt> by default): "))
+        self.txtpathname = TextInput(multiline=False)
+        self.add_widget(self.txtpathname)
+
+        # Create a button with margins
+        exec_create_workflow_button = Button(text='Create workflow', size_hint=(None, None), size=(150, 50), on_press=self.create_workflow)
+        exec_create_workflow_button.bind(texture_size=exec_create_workflow_button.setter('size'))
+        self.add_widget(exec_create_workflow_button)
+
+    def create_workflow(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
+        # Load workflow from json file
+        txt_pathname = self.txtpathname.text
+        if txt_pathname.__eq__(""):
+            txt_pathname = "./workflow_results.txt"
+        if check_txt_format(txt_pathname):
+            tasks_empty_list = []
+            workflow_parameters = {
+                'returned_info': '',
+                'returned_value': -1,
+                'tasks': tasks_empty_list,
+                'results_file': txt_pathname
+            }
+            self.__workflow.set_parameters(workflow_parameters)            
+            self.clear_widgets() # Clean the objects in the screen before adding the new ones
+            workflow_screen = WorkflowScreen(self.__workflow)
+            self.parent.add_widget(workflow_screen)
+        else:
+            self.txtpathname.text = "NOT A TXT FORMAT"
 
 ###############################################################################
 ###############################################################################
@@ -575,11 +669,20 @@ class MenuScreen(GridLayout): # This screen will show via buttons all the availa
 
     def open_workflow_menu(self, instance):
         self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        workflow_screen = WorkflowScreen() # Open the isolate codes menu
-        self.parent.add_widget(workflow_screen)
+        select_results_screen = SelectResultsPathnameWorkflowScreen() # Open the isolate codes menu
+        self.parent.add_widget(select_results_screen)
 
     def open_documentation(self, instance):
         pass # Open PDF with the documentation
+        '''
+        ##############################################
+        ##############################################
+        ##############################################
+        NOT DONE
+        ##############################################
+        ##############################################
+        ##############################################
+        '''
 
 ###############################################################################
 ###############################################################################
