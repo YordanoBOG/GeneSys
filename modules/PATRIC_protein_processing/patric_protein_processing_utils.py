@@ -80,3 +80,46 @@ def get_fasta_content(fasta_path):
     except Exception as e:
         return False, e
 
+
+
+'''
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+# Reads a given path to a Newick file that contains BRC identifiers and returns a list of the proteins contained
+# in the file while maintaining the order from the Newick file, or False
+def get_newick_codes(newick_pathname):
+    result = False
+    with open(newick_pathname, 'r') as file:
+        newick_content = file.read()
+
+    if newick_content:
+        # Extract protein codes using a simple parser
+        # The parser will consider anything that matches the 'fig|2480626.3.peg.3140' pattern as a protein code
+        protein_codes = []
+        current_code = []
+        recording = False # True if we are currently reading a protein code
+        
+        for char in newick_content:
+            if recording: 
+                if char.isalnum() or char in ".|":
+                    current_code.append(char)
+                else:
+                    protein_codes.append(''.join(current_code)) # We just finished reading a protein, so we join it and add it to the proteins list
+                    current_code = []
+                    recording = False
+            
+            if char == '|':
+                if len(current_code) > 0 and current_code[-1] == 'g':
+                    recording = True
+                current_code.append(char)
+        
+        # Ensure the last protein code is added
+        if recording:
+            protein_codes.append(''.join(current_code))
+        
+        result = protein_codes
+    return result'''
+
+    

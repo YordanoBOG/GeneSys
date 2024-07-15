@@ -12,7 +12,7 @@ from importlib import import_module
 from genericpath import exists
 import json
 import subprocess
-import time
+#import time
 #import argparse
 #import csv
 #from abc import abstractmethod
@@ -134,31 +134,7 @@ class Task():
         understand what is happening in an instance of the class
         """
         pass
-    
 
-##############################################################################
-##############################################################################
-##############################################################################
-##############################################################################
-
-
-#class DataTask(Task):
-    """This is a conceptual class representation that organizes
-        all method associate with DataFrame as Task. We do not need it by now
-    """
-    #def __init__(self):
-        #super().__init__()
-
-    #def get_parameters(self) -> dict:
-    """Returns a dictionary with all parameters needed to
-        initialize the class object to apply a Task.
-        It allows to implement Reflection
-    
-    :return: a dictionary with all parameters
-    :rtype: dict
-    """
-        #parameters={}
-        #return parameters
 
 
 ##############################################################################

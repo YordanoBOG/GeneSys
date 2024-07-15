@@ -2,29 +2,26 @@
 import subprocess
 
 from modules.baseobjects import Task
-from modules.PATRIC_protein_processing.patric_protein_processing_utils import save_fasta_string, get_fasta_content
-from utils.biopython_utils import get_coincidence_percentage
+#from modules.PATRIC_protein_processing.patric_protein_processing_utils import save_fasta_string, get_fasta_content, get_newick_codes
 
-class ReduceSample(Task):
-    __limit_percentage = 85
+class FromOrederdNewickToFasta(Task):
     __pathname_to_reduced_proteins = ""
-    __proteins = {}
-    __reduced_proteins = {}
+    __protein_codes = []
+    __pathname_to_reduced_ordered_proteins = ""
+    #__reduced_ordered_proteins = {}
 
     ###### INIT ######
 
-    def __init__(self, fasta_pathname="./proteins.fasta", 
-                 pathname_to_reduced_proteins="./reduced_proteins.fasta",
-                 percentage=1e-20):
+    def __init__(self, newick_pathname="../../data/3-reduced_proteins alignment FastTree Tree.newick", 
+                 pathname_to_reduced_proteins="./reduced_proteins.fasta"):
         # When we load this class from a json file, it gives the following error:
         # Unexpected error occurred: [Errno 2] No existe el archivo o el directorio: './proteins.fasta'
         # Which is because we are instantiating an object of this class when we load the
         # json file, but it is not dangerous as we are filling the object's attributes with
         # the information contained in the json file right after its instantiation
         super().__init__()
-        self.__get_proteins_from_fasta(fasta_pathname) # Fill self.__proteins
+        self.__get_proteins_from_newick(newick_pathname) # Fill self.__protein_codes
         self.__pathname_to_reduced_proteins = pathname_to_reduced_proteins
-        self.__limit_percentage = percentage # e_value syntax is properly checked at the Kivy UI
     
     ###### GET/SET METHODS ######
 
@@ -32,38 +29,67 @@ class ReduceSample(Task):
     def get_parameters(self) -> dict:
         parameters = super().get_parameters()
         parameters['pathname_to_reduced_proteins'] = self.__pathname_to_reduced_proteins
-        parameters['proteins'] = self.__proteins
-        parameters['reduced_proteins'] = self.__reduced_proteins
-        parameters['limit_percentage'] = self.__limit_percentage
+        parameters['protein_codes'] = self.__protein_codes
+        parameters['pathname_to_reduced_ordered_proteins'] = self.__pathname_to_reduced_ordered_proteins
+        #parameters['reduced_ordered_proteins'] = self.__reduced_ordered_proteins
         return parameters
     
     # We set the parameters of the class from a dictionary received as an argument, both the superclass parameters and the current class ones
     def set_parameters(self, parameters):
         super().set_parameters(parameters)
+        self.__pathname_to_reduced_ordered_proteins = parameters['pathname_to_reduced_ordered_proteins']
+        self.__protein_codes = parameters['protein_codes']
         self.__pathname_to_reduced_proteins = parameters['pathname_to_reduced_proteins']
-        self.__proteins = parameters['proteins']
-        self.__reduced_proteins = parameters['reduced_proteins']
-        self.__limit_percentage = parameters['limit_percentage']
+        #self.__reduced_ordered_proteins = parameters['reduced_ordered_proteins']
 
     # Return information that might be useful for the user
     def show_info(self):
         reduce_sample_dict = self.to_dict()
         reduce_sample_dict.pop('returned_info') # We remove returned info as it is too long to be worth to be showed
-        reduce_sample_dict.pop('proteins')
-        reduce_sample_dict.pop('reduced_proteins')
+        reduce_sample_dict.pop('protein_codes')
+        #reduce_sample_dict.pop('reduced_ordered_proteins')
         return str(reduce_sample_dict)
     
     ###### FILL CLASS VALUES METHODS #####
 
-    def __get_proteins_from_fasta(self, fasta_pathname):
-        get_prot_res = get_fasta_content(fasta_path=fasta_pathname) # Returns a tuple where the first element is a boolean of the result
-        if get_prot_res[0]:
-            self.__proteins = get_prot_res[1]
+    def __get_proteins_from_newick(self, newick_pathname):
+        with open(newick_pathname, 'r') as file:
+            newick_content = file.read()
+
+        if newick_content:
+            # Extract protein codes using a simple parser
+            # The parser will consider anything that matches the 'fig|2480626.3.peg.3140' pattern as a protein code
+            protein_codes = []
+            current_code = []
+            recording = False # True if we are currently reading a protein code
+            
+            for char in newick_content:
+                if recording: 
+                    if char.isalnum() or char in ".|":
+                        current_code.append(char)
+                    else:
+                        protein_codes.append(''.join(current_code)) # We just finished reading a protein, so we join it and add it to the proteins list
+                        current_code = []
+                        recording = False
+                
+                if char == '|':
+                    if len(current_code) > 0 and current_code[-1] == 'g':
+                        recording = True
+                    current_code.append(char)
+            
+            # Ensure the last protein code is added
+            if recording:
+                protein_codes.append(''.join(current_code))
+            
+            self.__protein_codes = protein_codes
+            print(str(self.__protein_codes)) # Llámalo desde la interfaz
+        
         else:
-            print(f"\n\nUnexpected error occurred while getting the proteins from the fasta file: {get_prot_res[1]}")
-            self._returned_info = f"Unexpected error occurred while getting the proteins from the fasta file: {get_prot_res[1]}"
+            print(f"\n\nUnexpected error occurred while oppening the newick file.")
+            self._returned_info = f"Unexpected error occurred while oppening the newick file."
 
 
+    '''
     ###### TASK EXECUTION METHODS ######
 
     # This is the method which will be called by the user in order to store de .fasta files
@@ -155,6 +181,10 @@ class ReduceSample(Task):
                 self._returned_info += f"\n\nUnexpected error occurred while creating the reduced proteins .fasta file: {touch_fasta.stderr}"
         except Exception as e:
             self._returned_info += f"\n\nUnexpected error occurred while getting protein strings from protein codes: {e}"
+    '''
 
-
+# MAIN
+'''ordered_newick_to_fasta = FromOrederdNewickToFasta("../../data/3-reduced_proteins alignment FastTree Tree.newick",
+                                                   "../../data/fasta/reduced_proteins.fasta")
+print(str(ordered_newick_to_fasta.get_parameters["protein_codes"]))'''
 

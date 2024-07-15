@@ -5,7 +5,7 @@
 
 This module contains the main classes
 that will be employed by all GeneSys modules in order to manipulate
-machine learning models
+machine learning algorythms
 
 It requires the following packages:
     -> scikitlearn
