@@ -84,7 +84,7 @@ class ModelSelection():
     """  
     def __init__(self, data = None, source = None, target = None):  
         
-        self.data = data 
+        self.data = data
         self.source = source
         self.target = target
         self.X_train = None

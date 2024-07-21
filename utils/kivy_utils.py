@@ -16,7 +16,7 @@ from kivy.uix.label import Label
 ##############################################################################
 # This method updates the size of a given label so that the text that the label stores
 # is entirely shown
-def update_label_text_size(label:Label):
+def update_label_text_size(label:Label): # Separar utilidades de estética de interfaz y de lógica de la interfaz
     # Update the text size to match the label's width
     label.text_size = (label.width, None)
     
@@ -82,3 +82,16 @@ def check_csv_format(pathname):
     if str(pathname)[-4:].__eq__(".csv"):
         result = True
     return result
+
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+# Checks if a given pathname ends with ".newick" string
+def check_newick_format(pathname):
+    result = False
+    if str(pathname)[-7:].__eq__(".newick"):
+        result = True
+    return result
+
