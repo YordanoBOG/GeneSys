@@ -2,7 +2,7 @@
 import subprocess
 
 from modules.baseobjects import Task
-from modules.PATRIC_protein_processing.patric_protein_processing_utils import save_fasta_string, get_fasta_content
+from utils.fasta_processing_utils import save_fasta_string, get_fasta_content
 from utils.biopython_utils import get_coincidence_percentage
 
 class ReduceSample(Task):

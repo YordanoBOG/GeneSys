@@ -1,7 +1,2 @@
 
--------------- TASK modules.PATRIC_protein_processing.from_ordered_newick_to_fasta.FromOrderedNewickToFasta: -------------
-ERROR while reading proteins from fasta file: [Errno 2] No existe el archivo o el directorio: './reduced_proteins.fasta'
-
-
-RETURNED VALUE: 0
 WORKFLOW'S RETURNED VALUE: 0

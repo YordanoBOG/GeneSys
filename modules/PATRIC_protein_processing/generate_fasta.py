@@ -3,19 +3,19 @@
 """
 @author: Bruno Otero Galadí (bruogal@gmail.com)
 
-This file implements a GeneSys example task that allows the user to
+This file implements a GeneSys task that allows the user to
 read a csv file with one column that corresponds to BVRC codes,
 obtain the appropiate gene sequences associated with each code and
 store all of them in a .fasta file while filtering repeated sequences.
 It is exclusively aimed to work with BVRC codes from
-PATRIC databases, and it has not been tested in other contexts.
+PATRIC databases.
 """
 
 import csv
 import subprocess
 
 from modules.baseobjects import Task
-from modules.PATRIC_protein_processing.patric_protein_processing_utils import save_fasta_string
+from utils.fasta_processing_utils import save_fasta_string
 
 ##############################################################################
 ##############################################################################

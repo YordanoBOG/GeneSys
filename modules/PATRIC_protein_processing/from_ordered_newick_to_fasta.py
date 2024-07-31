@@ -1,4 +1,4 @@
-#import re
+'''#import re
 import subprocess
 
 from modules.baseobjects import Task
@@ -82,8 +82,6 @@ class FromOrderedNewickToFasta(Task): # to EXCEL
             print(f"\n\nUnexpected error occurred while oppening the newick file: {e}")
             self._returned_info = f"Unexpected error occurred while oppening the newick file:\n{e}\n\n"
 
-
-    #'''
     ###### TASK EXECUTION METHODS ######
 
     # This is the method which will be called by the user in order to store de .fasta files
@@ -124,6 +122,6 @@ class FromOrderedNewickToFasta(Task): # to EXCEL
                 self._returned_info += f"\n\nUnexpected error occurred while getting protein strings from protein codes: {e}"
         else:
             self._returned_info += f"ERROR while reading proteins from fasta file: {result}\n\n"
-        
+'''
         
         

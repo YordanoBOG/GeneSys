@@ -11,8 +11,7 @@
 echo > ./feature_regions.fasta; # Clean fasta results file's content
 for code in "$@"
 do
-    echo
-    echo `p3-echo $code | p3-get-feature-regions --distance 30000 >> ./feature_regions.fasta`
+    echo `p3-echo $code | p3-get-feature-regions --distance 30000 >> ./feature_regions.fasta`;
     echo >> ./feature_regions.fasta; # Add one blank space between entries
 done
 
