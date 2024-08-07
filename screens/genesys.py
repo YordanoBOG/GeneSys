@@ -293,7 +293,6 @@ class WorkflowScreen(GridLayout):
 # This screen preceeds the creation of a workflow and asks the user to give
 # a .txt pathname where to save the results given by workflow's tasks
 
-# SIGUE ABAJO
 class SelectResultsPathnameWorkflowScreen(GridLayout):
 
     __workflow = None

@@ -1,2 +1,8 @@
 
+-------------- TASK modules.PATRIC_protein_processing.get_30kb_upanddown.Get30KbProteins: -------------
+
+
+The file with the bases corresponding to up to 30kb of the regions surrounding the given proteins was written succesfully
+
+RETURNED VALUE: 0
 WORKFLOW'S RETURNED VALUE: 0

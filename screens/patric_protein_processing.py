@@ -133,18 +133,24 @@ class Get30KBScreen(GridLayout):
         super(Get30KBScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
         
         self.__workflow = workflow
-        self.rows = 2 # Determine how many rows and columns will the GridLayout have
+        self.rows = 3 # Determine how many rows and columns will the GridLayout have
         self.cols = 2
 
         # Welcome message
 
         # Add text boxes
         #'''        
-        reduced_sample_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where to save the reduced sample (<./reduced_proteins.fasta> by default)(If a previous ReduceSample task is defined for this workflow, its parameter <__pathname_to_reduced_proteins> value will be taken as this parameter instead of the one given in this text box. If no one is given, <./reduced_proteins.fasta> by default): ")
-        #update_label_text_size(reduced_sample_fasta_text_label)
+        reduced_sample_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where the reduced sample is saved (<./reduced_proteins.fasta> by default)(If a previous ReduceSample task is defined for this workflow, its parameter <__pathname_to_reduced_proteins> value will be taken as this parameter instead of the one given in this text box. If no one is given, <./reduced_proteins.fasta> by default): ")
+        update_label_text_size(reduced_sample_fasta_text_label)
         self.add_widget(reduced_sample_fasta_text_label)
         self.reduced_sample_fasta_text_input = TextInput(multiline=False)
         self.add_widget(self.reduced_sample_fasta_text_input)
+
+        feature_regions_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where to save the features regions of the proteins (<./feature_regions.fasta> by default): ")
+        #update_label_text_size(feature_regions_fasta_text_label)
+        self.add_widget(feature_regions_fasta_text_label)
+        self.feature_regions_fasta_text_input = TextInput(multiline=False)
+        self.add_widget(self.feature_regions_fasta_text_input)
         #'''
 
         # Create a button with margins
@@ -152,11 +158,20 @@ class Get30KBScreen(GridLayout):
         exec_reduce_sample_button.bind(texture_size=exec_reduce_sample_button.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_reduce_sample_button)
 
+        # Button to return to task selection screen
+        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_return_to_task_screen)
+
     # Call the script that isolates gene codes with the given arguments
     def generate_task(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
         reduced_sample_fasta_pathname = self.reduced_sample_fasta_text_input.text
         if reduced_sample_fasta_pathname.__eq__(""):
             reduced_sample_fasta_pathname = "./reduced_proteins.fasta"
+
+        feature_regions_fasta_pathname = self.feature_regions_fasta_text_input.text
+        if feature_regions_fasta_pathname.__eq__(""):
+            feature_regions_fasta_pathname = "./feature_regions.fasta"
 
         # We chekc if the previous task of the workflow stores a specific __pathname_to_reduced_proteins.
         # In that case, it will be taken as the __pathname_to_reduced_proteins parameter of the new task
@@ -172,14 +187,22 @@ class Get30KBScreen(GridLayout):
         # Check fasta format
         if not check_fasta_format(reduced_sample_fasta_pathname): # Validate fasta_pathname as a fasta file
             self.reduced_sample_fasta_text_input.text = "NOT A FASTA FORMAT"
-        else: # if check_fasta_format(reduced_sample_fasta_pathname):
+        if not check_fasta_format(feature_regions_fasta_pathname):
+            self.feature_regions_fasta_text_input.text = "NOT A FASTA FORMAT"
+        
+        if check_fasta_format(reduced_sample_fasta_pathname) and check_fasta_format(feature_regions_fasta_pathname):
             # Create a new task only if the format of the given arguments is correct
-            get_30kb = Get30KbProteins(pathname_to_reduced_proteins=reduced_sample_fasta_pathname)
+            get_30kb = Get30KbProteins(pathname_to_reduced_proteins=reduced_sample_fasta_pathname,
+                                       pathname_to_feature_proteins=feature_regions_fasta_pathname)
             self.__workflow.add_task(get_30kb)
             self.clear_widgets() # Clean the objects in the screen before adding the new ones
             task_screen = PatricTaskScreen(self.__workflow)
             self.parent.add_widget(task_screen)
             
+    def return_to_task_screen(self, instance):
+        self.clear_widgets() # Clean the objects in the screen before adding the new ones
+        task_screen = PatricTaskScreen(workflow=self.__workflow)
+        self.parent.add_widget(task_screen)
 
 ###############################################################################
 ###############################################################################
@@ -235,6 +258,11 @@ class ReduceSampleScreen(GridLayout):
         exec_reduce_sample_button.bind(texture_size=exec_reduce_sample_button.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_reduce_sample_button)
 
+        # Button to return to task selection screen
+        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_return_to_task_screen)
+
     # Call the script that isolates gene codes with the given arguments
     def generate_task(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
         # First, we set the pathname to the fasta file with the proteins to reduce given by the user
@@ -285,6 +313,11 @@ class ReduceSampleScreen(GridLayout):
             task_screen = PatricTaskScreen(self.__workflow)
             self.parent.add_widget(task_screen)
 
+    def return_to_task_screen(self, instance):
+        self.clear_widgets() # Clean the objects in the screen before adding the new ones
+        task_screen = PatricTaskScreen(workflow=self.__workflow)
+        self.parent.add_widget(task_screen)
+
 
 ###############################################################################
 ###############################################################################
@@ -326,6 +359,11 @@ class FastaGenerationScreen(GridLayout):
         exec_generate_fasta_button.bind(texture_size=exec_generate_fasta_button.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_generate_fasta_button)
 
+        # Button to return to task selection screen
+        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_return_to_task_screen)
+
     # Call the script that isolates gene codes with the given arguments
     def generate_task(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
         # Create a new task and update the workflow
@@ -360,6 +398,11 @@ class FastaGenerationScreen(GridLayout):
             self.clear_widgets() # Clean the objects in the screen before adding the new ones
             task_screen = PatricTaskScreen(self.__workflow)
             self.parent.add_widget(task_screen)
+
+    def return_to_task_screen(self, instance):
+        self.clear_widgets() # Clean the objects in the screen before adding the new ones
+        task_screen = PatricTaskScreen(workflow=self.__workflow)
+        self.parent.add_widget(task_screen)
 #'''
 
 ###############################################################################
@@ -395,6 +438,11 @@ class IsolateCodesScreen(GridLayout):
         exec_isolate_codes_button.bind(texture_size=exec_isolate_codes_button.setter('size'))
         self.add_widget(exec_isolate_codes_button)
 
+        # Button to return to task selection screen
+        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_return_to_task_screen)
+    
     # Call the script that isolates gene codes with the given arguments
     def generate_task(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
         # Create a new task and insert it in the workflow
@@ -413,6 +461,11 @@ class IsolateCodesScreen(GridLayout):
             self.parent.add_widget(task_screen)
         else:
             self.csvpath.text = "NOT A CSV FORMAT"
+
+    def return_to_task_screen(self, instance):
+        self.clear_widgets() # Clean the objects in the screen before adding the new ones
+        task_screen = PatricTaskScreen(workflow=self.__workflow)
+        self.parent.add_widget(task_screen)
 #'''
 
 ###############################################################################

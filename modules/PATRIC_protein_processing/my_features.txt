@@ -1,0 +1,1 @@
+id	feature.patric_id	feature.aa_sequence

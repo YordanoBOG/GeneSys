@@ -21,12 +21,13 @@ from utils.fasta_processing_utils import get_fasta_content
 class Get30KbProteins(Task):
 
     __pathname_to_reduced_proteins = ""
+    __pathname_to_feature_proteins = ""
     __bait_proteins = {}
-    # Something to store each bait with its corresponding surrounding proteins
 
     ###### INIT ######
 
-    def __init__(self, pathname_to_reduced_proteins="./reduced_proteins.fasta"):
+    def __init__(self, pathname_to_reduced_proteins="./reduced_proteins.fasta",
+                 pathname_to_feature_proteins = "./feature_regions.fasta"):
         # When we load this class from a json file, it gives the following error:
         # Unexpected error occurred: [Errno 2] No existe el archivo o el directorio: './proteins.fasta'
         # Which is because we are instantiating an object of this class when we load the
@@ -35,7 +36,8 @@ class Get30KbProteins(Task):
         super().__init__()
         self.__get_proteins_from_fasta(pathname_to_reduced_proteins) # Fill self.__bait_proteins
         self.__pathname_to_reduced_proteins = pathname_to_reduced_proteins
-    
+        self.__pathname_to_feature_proteins = pathname_to_feature_proteins
+
     
     ###### GET/SET METHODS ######
 
@@ -43,6 +45,7 @@ class Get30KbProteins(Task):
     def get_parameters(self) -> dict:
         parameters = super().get_parameters()
         parameters['pathname_to_reduced_proteins'] = self.__pathname_to_reduced_proteins
+        parameters['pathname_to_feature_proteins'] = self.__pathname_to_feature_proteins
         parameters['bait_proteins'] = self.__bait_proteins
         return parameters
     
@@ -50,6 +53,7 @@ class Get30KbProteins(Task):
     def set_parameters(self, parameters):
         super().set_parameters(parameters)
         self.__pathname_to_reduced_proteins = parameters['pathname_to_reduced_proteins']
+        self.__pathname_to_feature_proteins = parameters['pathname_to_feature_proteins']
         self.__bait_proteins = parameters['bait_proteins']
     
     # There is a value that we do not want to show when we get this task as a string
@@ -87,7 +91,7 @@ class Get30KbProteins(Task):
             # We execute a bash script that executes the proper BV-BRC tool which gets up 30kb correpsonding to regions surrounding a protein.
             # It receives all the BV-BRC IDs from which get the proteins and stores them in a temporal
             # fasta file in "./feature_regions.fasta" output
-            args_list = [] # The arguments will be the BV_BRC proteins' IDs stored as list
+            args_list = [self.__pathname_to_feature_proteins] # The arguments will be the BV_BRC proteins' IDs stored as list preceeded by the pathname where to save the features
             for code in self.__bait_proteins.keys():
                 args_list.append(code)
             sh_command = ["modules/PATRIC_protein_processing/get_30kilobases_up_and_down.sh"] + args_list

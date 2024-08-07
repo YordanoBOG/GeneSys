@@ -13,19 +13,6 @@ from kivy.lang import Builder # This is necesary when we have the .kv files in a
 
 import kivy
 kivy.require('2.3.0') # replace with your current kivy version!
-from kivy.app import App
-from kivy.lang import Builder # This is necesary when we have the .kv files in a diferent folder than our main application
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.scrollview import ScrollView
-#from kivy.uix.dropdown import DropDown
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.button import Button
-from kivy.uix.popup import Popup
-from kivy.core.window import Window
-#from kivy.clock import Clock
-# from kivy.uix.widget import Widget
 
 ###############################################################################
 ###############################################################################
