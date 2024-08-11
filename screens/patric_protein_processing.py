@@ -14,7 +14,8 @@ from modules.PATRIC_protein_processing.reduce_sample import ReduceSample
 from modules.PATRIC_protein_processing.get_30kb_upanddown import Get30KbProteins
 #from modules.PATRIC_protein_processing.from_ordered_newick_to_fasta import FromOrderedNewickToFasta
 from modules.baseobjects import Workflow
-from utils.kivy_utils import update_label_text_size, check_fasta_format, check_json_format, check_txt_format, check_csv_format #, check_newick_format
+from utils.kivy_utils import update_label_text_size #, convert_to_scientific_notation
+from utils.check_format_utils import check_fasta_format, check_csv_format #, check_newick_format
 
 #import threading # We will use multithreading to execute long tasks while allowing the user to keep using GeneSys' UI
 #import ctypes
@@ -540,7 +541,7 @@ class PatricTaskScreen(GridLayout):
 
     def open_workflow_menu(self, instance):
         self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        workflow_screen = genesys.WorkflowScreen(self.__workflow) # Open the isolate codes menu
+        workflow_screen = genesys.WorkflowScreen(type='PATRIC', workflow=self.__workflow) # Open the isolate codes menu
         self.parent.add_widget(workflow_screen)
 
     def show_workflow_info(self): # Workflow info is shown through a function because it might be called from other methods that modify the workflow

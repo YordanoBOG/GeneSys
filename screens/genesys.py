@@ -9,7 +9,7 @@ This file provides a full Kivy GUI for GeneSys app generic workflow manipulation
 from . import patric_protein_processing
 
 from modules.baseobjects import Workflow
-from utils.kivy_utils import check_json_format, check_txt_format#, update_label_text_size, check_fasta_format, check_csv_format, check_newick_format
+from utils.check_format_utils import check_json_format, check_txt_format
 
 import threading # We will use multithreading to execute long tasks while allowing the user to keep using GeneSys' UI
 import ctypes
@@ -39,11 +39,13 @@ from kivy.core.window import Window
 class GenerateJsonScreen(GridLayout):
 
     __workflow = None
+    __workflow_type = ""
 
-    def __init__(self, workflow=Workflow(), **kwargs):
+    def __init__(self, type:str, workflow=Workflow(), **kwargs):
         super(GenerateJsonScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
         
         self.__workflow = workflow
+        self.__workflow_type = type
         self.rows = 4
         self.cols = 2
 
@@ -62,6 +64,11 @@ class GenerateJsonScreen(GridLayout):
         exec_generate_json_button.bind(texture_size=exec_generate_json_button.setter('size'))
         self.add_widget(exec_generate_json_button)
 
+        # Button to return to workflow screen
+        exec_return_to_workflow_screen = Button(text='Return to workflow menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_workflow_screen)
+        exec_return_to_workflow_screen.bind(texture_size=exec_return_to_workflow_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_return_to_workflow_screen)
+
     # Call the script that isolates gene codes with the given arguments
     def generate_json(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
         if self.jsonpathname.text.__eq__(""):
@@ -70,10 +77,15 @@ class GenerateJsonScreen(GridLayout):
         if check_json_format(json_pathname):
             self.__workflow.generate_json(path=json_pathname) # Call to generate_json Workflow class method
             self.clear_widgets() # Clean the objects in the screen before adding the new ones
-            workflow_screen = WorkflowScreen(self.__workflow)
+            workflow_screen = WorkflowScreen(type=self.__workflow_type, workflow=self.__workflow)
             self.parent.add_widget(workflow_screen)
         else:
             self.jsonpathname.text = "NOT A JSON FORMAT"
+
+    def return_to_workflow_screen(self, instance):
+        self.clear_widgets() # Clean the objects in the screen before adding the new ones
+        workflow_screen = WorkflowScreen(type=self.__workflow_type, workflow=self.__workflow)
+        self.parent.add_widget(workflow_screen)
 
 ###############################################################################
 ###############################################################################
@@ -84,11 +96,13 @@ class GenerateJsonScreen(GridLayout):
 class GenerateWorkflowFromJsonScreen(GridLayout):
 
     __workflow = None
+    __workflow_type = ""
 
-    def __init__(self, workflow=Workflow(), **kwargs):
+    def __init__(self, type:str, workflow=Workflow(), **kwargs):
         super(GenerateWorkflowFromJsonScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
         
         self.__workflow = workflow
+        self.__workflow_type = type
         self.rows = 3
         self.cols = 2
 
@@ -104,6 +118,11 @@ class GenerateWorkflowFromJsonScreen(GridLayout):
         exec_generate_workflow_button.bind(texture_size=exec_generate_workflow_button.setter('size'))
         self.add_widget(exec_generate_workflow_button)
 
+        # Button to return to workflow screen
+        exec_return_to_workflow_screen = Button(text='Return to workflow menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_workflow_screen)
+        exec_return_to_workflow_screen.bind(texture_size=exec_return_to_workflow_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_return_to_workflow_screen)
+
     def generate_workflow(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
         # Load workflow from json file
         json_pathname = self.jsonpathname.text
@@ -112,10 +131,15 @@ class GenerateWorkflowFromJsonScreen(GridLayout):
         if check_json_format(json_pathname):
             self.__workflow.get_from_json(json_path=json_pathname)            
             self.clear_widgets() # Clean the objects in the screen before adding the new ones
-            workflow_screen = WorkflowScreen(self.__workflow)
+            workflow_screen = WorkflowScreen(type=self.__workflow_type, workflow=self.__workflow)
             self.parent.add_widget(workflow_screen)
         else:
             self.jsonpathname.text = "NOT A JSON FORMAT"
+
+    def return_to_workflow_screen(self, instance):
+        self.clear_widgets() # Clean the objects in the screen before adding the new ones
+        workflow_screen = WorkflowScreen(type=self.__workflow_type, workflow=self.__workflow)
+        self.parent.add_widget(workflow_screen)
 
 ###############################################################################
 ###############################################################################
@@ -184,7 +208,7 @@ class WorkflowScreen(GridLayout):
         if self.__workflow_type.__eq__("PATRIC"):
             task_screen = patric_protein_processing.PatricTaskScreen(workflow=self.__workflow)
             self.parent.add_widget(task_screen)
-        # elif sentences if there are more developed screens for a workflow
+        # elif sentences if there are more developed task groups for a workflow
         else:
             self.return_to_main_menu()
 
@@ -206,12 +230,12 @@ class WorkflowScreen(GridLayout):
 
     def save_workflow(self, instance): # Poder elegir dónde lo guardamos y cómo llamar al fichero .json, lo que requiere una nueva ventana
         self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        save_workflow_screen = GenerateJsonScreen(self.__workflow) # Open the menu that asks the user where to save current workflow
+        save_workflow_screen = GenerateJsonScreen(type=self.__workflow_type, workflow=self.__workflow) # Open the menu that asks the user where to save current workflow
         self.parent.add_widget(save_workflow_screen)
 
     def load_workflow(self, instance): # We want to choose where to save JSON file and which name should be goven to it, so we define a specific screen for it
         self.clear_widgets() # Clean the objects in the screen before adding the new ones
-        load_workflow_screen = GenerateWorkflowFromJsonScreen(self.__workflow) # Open the menu that asks the user where to save current workflow
+        load_workflow_screen = GenerateWorkflowFromJsonScreen(type=self.__workflow_type, workflow=self.__workflow) # Open the menu that asks the user where to save current workflow
         self.parent.add_widget(load_workflow_screen)
 
     def run_workflow(self, instance):
@@ -238,7 +262,7 @@ class WorkflowScreen(GridLayout):
         close_button = Button(text="Close", size_hint=(None, None), size=(100, 50))
         box.add_widget(message) # Add the message and the close button to the layout
         box.add_widget(close_button)
-        popup = Popup(title='Workflow completed!', content=box, size_hint=(None, None), size=(300, 200)) # Create pop up
+        popup = Popup(title='Workflow completed!', content=box, size_hint=(None, None), size=(300, 200)) # Create popup. Size proppertuy must be set dinamicaly
         close_button.bind(on_press=popup.dismiss) # Bind the close button to close the popup
         popup.open() # Open the popup
 
@@ -353,11 +377,11 @@ class MenuScreen(GridLayout): # This screen will show via buttons all the availa
         # Insertar mensaje de bienvenida
 
         # Button that opens the menu that allows manipulating all options concerning a workflow
-        workflow_menu_button = Button(text='Create new PATRIC protein manipulation GeneSys workflow', size_hint=(None, None), size=(150, 50), on_press=self.open_workflow_menu)
-        workflow_menu_button.bind(texture_size=workflow_menu_button.setter('size'))
-        self.add_widget(workflow_menu_button)
+        patric_workflow_menu_button = Button(text='Create new PATRIC protein manipulation GeneSys workflow', size_hint=(None, None), size=(150, 50), on_press=self.open_patric_workflow_menu)
+        patric_workflow_menu_button.bind(texture_size=patric_workflow_menu_button.setter('size'))
+        self.add_widget(patric_workflow_menu_button)
 
-    def open_workflow_menu(self, instance): # menu_key specifies which set of task can be added to the workflow, and it will determine which workflow manipulation screen must be open
+    def open_patric_workflow_menu(self, instance): # menu_key specifies which set of task can be added to the workflow, and it will determine which workflow manipulation screen must be open
         self.clear_widgets() # Clean the objects in the screen before adding the new ones
         select_results_screen = SelectResultsPathnameWorkflowScreen(type="PATRIC") # Open the isolate codes menu
         self.parent.add_widget(select_results_screen)

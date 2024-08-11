@@ -18,4 +18,3 @@ do
     echo `p3-echo $code | p3-get-feature-regions --distance 30000 >> $path`;
     echo >> $path; # Add one blank space between entries
 done
-
