@@ -225,10 +225,11 @@ class Workflow(Task):
         :rtype: DataObject, DataFrame
         """
         try:
+            self._returned_info = ""
             for task in self.__tasks:
                 task.run() # It requires that each task can be applied right after the previous one with their own parameters
                 task_dict = task.to_dict()
-                self._returned_info += '\n-------------- TASK ' + str(task_dict['type']) + ': -------------\n' + str(task_dict['returned_info']) + '\nRETURNED VALUE: ' + str(task_dict['returned_value'])
+                self._returned_info += '\n--------------\nTASK ' + str(task_dict['type']) + '\n\n' + str(task_dict['returned_info']) + '\nRETURNED VALUE: ' + str(task_dict['returned_value']) + '\n\n'
             self._returned_value = 0
             self.__save_results() # generate de results .txt file
         except SystemExit:
@@ -236,15 +237,12 @@ class Workflow(Task):
 
         
     def __save_results(self):
-        # We save the execution results of the workflow in a text file
-        touch_result = subprocess.run(['touch', self.__results_file]) # Create the results info file
-        if touch_result.returncode == 0:
-            info = self._returned_info + "\nWORKFLOW'S RETURNED VALUE: " + str(self._returned_value)
-            results_file = open(self.__results_file, 'w')
-            results_file.write(info) # OVERWRITE
-        else:
-            message = f"\n\n\nERROR WHILE CREATING WORKFLOW'S RESULTS FILE: {touch_result.stderr}\n" # Error message
-            print(message)
+        try:
+            info = self._returned_info + "\n\n--------------\nWORKFLOW'S RETURNED VALUE: " + str(self._returned_value)
+            with open(self.__results_file, 'w+') as results_file:
+                results_file.write(info)
+        except Exception as e:
+            print(f"Error. Unable to write workflow's results on file {self.__results_file}: {str(e)}")
 
     
     def generate_json(self, path = "./workflow.json"):

@@ -1,6 +1,18 @@
 
--------------- TASK modules.PATRIC_protein_processing.isolate_column.IsolateColumn: -------------
-Column 'BRC ID' found. Starting saving...
-new CSV file was saved succesfully
+--------------
+TASK modules.PATRIC_protein_processing.get_codons_from_features.GetCodonsFromFeatures
+
+Error while trying to read the features: [Errno 2] No existe el archivo o el directorio: 'a.fasta'
+RETURNED VALUE: 1
+
+
+--------------
+TASK modules.PATRIC_protein_processing.get_codons_from_features.GetCodonsFromFeatures
+
+Done
 RETURNED VALUE: 0
+
+
+
+--------------
 WORKFLOW'S RETURNED VALUE: 0

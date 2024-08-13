@@ -12,10 +12,11 @@ from modules.PATRIC_protein_processing.isolate_column import IsolateColumn
 from modules.PATRIC_protein_processing.generate_fasta import GenerateFasta
 from modules.PATRIC_protein_processing.reduce_sample import ReduceSample
 from modules.PATRIC_protein_processing.get_30kb_upanddown import Get30KbProteins
+from modules.PATRIC_protein_processing.get_codons_from_features import GetCodonsFromFeatures
 #from modules.PATRIC_protein_processing.from_ordered_newick_to_fasta import FromOrderedNewickToFasta
 from modules.baseobjects import Workflow
-from utils.kivy_utils import update_label_text_size #, convert_to_scientific_notation
-from utils.check_format_utils import check_fasta_format, check_csv_format #, check_newick_format
+#from utils.kivy_utils import update_label_text_size #, convert_to_scientific_notation
+from utils.check_format_utils import check_fasta_format, check_csv_format, check_json_format #, check_newick_format
 
 #import threading # We will use multithreading to execute long tasks while allowing the user to keep using GeneSys' UI
 #import ctypes
@@ -25,8 +26,6 @@ from utils.check_format_utils import check_fasta_format, check_csv_format #, che
 
 import kivy
 kivy.require('2.3.0') # replace with your current kivy version!
-from kivy.app import App
-from kivy.lang import Builder # This is necesary when we have the .kv files in a diferent folder than our main application
 from kivy.uix.gridlayout import GridLayout
 #from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
@@ -34,7 +33,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
-from kivy.uix.popup import Popup
+#from kivy.uix.popup import Popup
 from kivy.core.window import Window
 #from kivy.clock import Clock
 # from kivy.uix.widget import Widget
@@ -122,10 +121,102 @@ class FromOrderedNewickToFastaScreen(GridLayout):
 ###############################################################################
 ###############################################################################
 ###############################################################################
+# This class creates a Task that recognizes the stop codons contained in a fasta file
+# that stores some aminoacid sequences corresponding each to all the proteins that surround
+# a given SLAT domain containing protein bait. It creates a dicitonary where each key is a bait
+# and its corresponding value is a list of all the proteins that surround the bait.
+# It returns a json file with the dictionary.
+class RecognizeCodonsScreen(GridLayout):
+
+    __workflow = None
+
+    def __init__(self, workflow=Workflow(), **kwargs):
+        super(RecognizeCodonsScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
+        
+        self.__workflow = workflow
+        self.rows = 3
+        self.cols = 2
+
+        # Add text boxes
+        #'''        
+        feature_regions_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where the features are stored (<./feature_regions.fasta> by default)(If a previous Get30KBScreen task is defined for this workflow, its parameter <__pathname_to_feature_proteins> value will be taken as this parameter instead of the one given in this text box): ")
+        self.add_widget(feature_regions_fasta_text_label)
+        self.feature_regions_fasta_text_input = TextInput(multiline=False)
+        self.add_widget(self.feature_regions_fasta_text_input)
+
+        json_results_label = Label(text="Please, introduce the pathname of the .json file where to save the recognized codons (<./codons.json> by default): ")
+        self.add_widget(json_results_label)
+        self.json_results_text_input = TextInput(multiline=False)
+        self.add_widget(self.json_results_text_input)
+        #'''
+
+        # Button to create de task
+        exec_recognize_codons = Button(text='Generate task',
+                                        size_hint=(None, None),
+                                        size=(300, 100),
+                                        halign='center',
+                                        on_press=self.generate_task)
+        exec_recognize_codons.bind(texture_size=exec_recognize_codons.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_recognize_codons)
+
+        # Button to return to task selection screen
+        exec_return_to_task_screen = Button(text='Return to task selection menu',
+                                            size_hint=(None, None),
+                                            size=(300, 100),
+                                            halign='center',
+                                            on_press=self.return_to_task_screen)
+        exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_return_to_task_screen)
+
+    # Call the script that recognizes the codons
+    def generate_task(self, instance): # 'instance' is the name and reference to the object instance of the Class CustomBnt. You use it to gather information about the pressed Button. instance.text would be the text on the Button
+        feature_regions_fasta_pathname = self.feature_regions_fasta_text_input.text
+        if feature_regions_fasta_pathname.__eq__(""):
+            feature_regions_fasta_pathname = "./feature_regions.fasta"
+
+        json_results_pathname = self.json_results_text_input.text
+        if json_results_pathname.__eq__(""):
+            json_results_pathname = "./codons.json"
+
+        # We chekc if the previous task of the workflow stores a specific __pathname_to_feature_proteins.
+        # In that case, it will be taken as the __pathname_to_feature_proteins parameter of the new task
+        # instead of the one set by the user
+        workflow_tasks = self.__workflow.get_tasks()
+        if len(workflow_tasks) is not 0: # If there are previous tasks in the workflow
+            last_task = workflow_tasks[-1] # Get the last task that was added to the workflow
+            last_task_dict = last_task.to_dict()
+            if last_task_dict['type'] == 'modules.PATRIC_protein_processing.get_30kb_upanddown.Get30KbProteins': # If the last task of the workflow correspondos to a Get30KbProteins object
+                print("\n\nTHE LAST TASK OF THE WORKFLOW IS A Get30KbProteins OBJECT. __pathname_to_feature_proteins WILL BE TAKEN FROM ITS PARAMETERS\n\n")
+                feature_regions_fasta_pathname = last_task_dict['pathname_to_feature_proteins']
+
+        # Check formats
+        if not check_json_format(json_results_pathname):
+            self.json_results_text_input.text = "NOT A JSON FORMAT"
+        if not check_fasta_format(feature_regions_fasta_pathname):
+            self.feature_regions_fasta_text_input.text = "NOT A FASTA FORMAT"
+        
+        if check_json_format(json_results_pathname) and check_fasta_format(feature_regions_fasta_pathname):
+            # Create a new task only if the format of the given arguments is correct
+            get_codons = GetCodonsFromFeatures(pathname_to_feature_proteins=feature_regions_fasta_pathname,
+                                               pathname_to_json_results=json_results_pathname,
+                                              )
+            self.__workflow.add_task(get_codons)
+            self.clear_widgets() # Clean the objects in the screen before adding the new ones
+            task_screen = PatricTaskScreen(self.__workflow)
+            self.parent.add_widget(task_screen)
+            
+    def return_to_task_screen(self, instance):
+        self.clear_widgets() # Clean the objects in the screen before adding the new ones
+        task_screen = PatricTaskScreen(workflow=self.__workflow)
+        self.parent.add_widget(task_screen)
+
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
 # This class creates a Task that gets a maximum 30,000 kilobases up and down from each protein
 # contained in a fasta file, corresponding to proteins that surround the ones
 # stored in the fasta, which work as baits for their respective surrounding proteins.
-# Returns: 
 class Get30KBScreen(GridLayout):
 
     __workflow = None
@@ -134,33 +225,37 @@ class Get30KBScreen(GridLayout):
         super(Get30KBScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
         
         self.__workflow = workflow
-        self.rows = 3 # Determine how many rows and columns will the GridLayout have
+        self.rows = 3
         self.cols = 2
-
-        # Welcome message
 
         # Add text boxes
         #'''        
-        reduced_sample_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where the reduced sample is saved (<./reduced_proteins.fasta> by default)(If a previous ReduceSample task is defined for this workflow, its parameter <__pathname_to_reduced_proteins> value will be taken as this parameter instead of the one given in this text box. If no one is given, <./reduced_proteins.fasta> by default): ")
-        update_label_text_size(reduced_sample_fasta_text_label)
+        reduced_sample_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where the reduced sample is saved (<./reduced_proteins.fasta> by default)(If a previous ReduceSample task is defined for this workflow, its parameter <__pathname_to_reduced_proteins> value will be taken as this parameter instead of the one given in this text box): ")
         self.add_widget(reduced_sample_fasta_text_label)
         self.reduced_sample_fasta_text_input = TextInput(multiline=False)
         self.add_widget(self.reduced_sample_fasta_text_input)
 
         feature_regions_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where to save the features regions of the proteins (<./feature_regions.fasta> by default): ")
-        #update_label_text_size(feature_regions_fasta_text_label)
         self.add_widget(feature_regions_fasta_text_label)
         self.feature_regions_fasta_text_input = TextInput(multiline=False)
         self.add_widget(self.feature_regions_fasta_text_input)
         #'''
 
         # Create a button with margins
-        exec_reduce_sample_button = Button(text='Generate task', size_hint=(None, None), size=(150, 50), on_press=self.generate_task)
-        exec_reduce_sample_button.bind(texture_size=exec_reduce_sample_button.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
-        self.add_widget(exec_reduce_sample_button)
+        exec_get_features = Button(text='Generate task',
+                                    size_hint=(None, None),
+                                    size=(300, 100),
+                                    halign='center',
+                                    on_press=self.generate_task)
+        exec_get_features.bind(texture_size=exec_get_features.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
+        self.add_widget(exec_get_features)
 
         # Button to return to task selection screen
-        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen = Button(text='Return to task selection menu',
+                                            size_hint=(None, None),
+                                            size=(300, 100),
+                                            halign='center',
+                                            on_press=self.return_to_task_screen)
         exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_return_to_task_screen)
 
@@ -224,43 +319,39 @@ class ReduceSampleScreen(GridLayout):
         self.rows = 4 # Determine how many rows and columns will the GridLayout have
         self.cols = 2
 
-        # Welcome message
-
         # Add text boxes
         #'''
         fasta_pathname_text_label = Label(text="Please, introduce the pathname to the .fasta file that contains the proteins to reduce (if a previous GenerateFasta task is defined for this workflow, its parameter <__fasta_pathname> value will be taken as this parameter instead of the one given in this text box. If no one is given, <./proteins.fasta> by default): ")
-        #update_label_text_size(fasta_pathname_text_label)
         self.add_widget(fasta_pathname_text_label)
         self.fasta_pathname_text_input = TextInput(multiline=False)
         self.add_widget(self.fasta_pathname_text_input)
         
         reduced_sample_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where to save the reduced sample (<./reduced_proteins.fasta> by default): ")
-        #update_label_text_size(reduced_sample_fasta_text_label)
         self.add_widget(reduced_sample_fasta_text_label)
         self.reduced_sample_fasta_text_input = TextInput(multiline=False)
         self.add_widget(self.reduced_sample_fasta_text_input)
 
-        '''limit_e_value_text_label = Label(text="Please, introduce the e-value which will be used as the minimum required in order to consider that two proteins are different (notation: 1e<your_value>)(1e-20 by default): ")
-        update_label_text_size(limit_e_value_text_label)
-        self.add_widget(limit_e_value_text_label)
-        self.limit_e_value_text_input = TextInput(multiline=False)
-        self.add_widget(self.limit_e_value_text_input)
-        #'''
-
         limit_percentage_text_label = Label(text="Please, introduce the similarity percentage (just the number) which will be used as the minimum required in order to consider that two proteins are different (85 by default): ")
-        update_label_text_size(limit_percentage_text_label)
         self.add_widget(limit_percentage_text_label)
         self.limit_percentage_text_input = TextInput(multiline=False)
         self.add_widget(self.limit_percentage_text_input)
         #'''
 
         # Create a button with margins
-        exec_reduce_sample_button = Button(text='Generate task', size_hint=(None, None), size=(150, 50), on_press=self.generate_task)
+        exec_reduce_sample_button = Button(text='Generate task',
+                                           size_hint=(None, None),
+                                           size=(300, 100),
+                                           halign='center',
+                                           on_press=self.generate_task)
         exec_reduce_sample_button.bind(texture_size=exec_reduce_sample_button.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_reduce_sample_button)
 
         # Button to return to task selection screen
-        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen = Button(text='Return to task selection menu',
+                                            size_hint=(None, None),
+                                            size=(300, 100),
+                                            halign='center',
+                                            on_press=self.return_to_task_screen)
         exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_return_to_task_screen)
 
@@ -335,7 +426,7 @@ class FastaGenerationScreen(GridLayout):
         super(FastaGenerationScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
         
         self.__workflow = workflow
-        self.rows = 4 # We ask the GridLayout to manage its children in two columns and 3 rows.
+        self.rows = 3 # We ask the GridLayout to manage its children in two columns and 3 rows.
         self.cols = 2
 
         # Welcome message
@@ -343,7 +434,6 @@ class FastaGenerationScreen(GridLayout):
         # Add text boxes
         #'''
         protein_codes_text_label = Label(text="Please, introduce protein codes csv's pathname (if a previous IsolateColumn task is defined for this workflow, its returned <csv_codes_path> value will be taken as this parameter instead of the one given in this text box): ")
-        update_label_text_size(protein_codes_text_label)
         self.add_widget(protein_codes_text_label)
         self.csv_codes_path = TextInput(multiline=False)
         self.add_widget(self.csv_codes_path)
@@ -354,14 +444,20 @@ class FastaGenerationScreen(GridLayout):
         #'''
 
         # Create a button with margins
-        exec_generate_fasta_button = Button(text='Generate task', size_hint=(None, None), size=(150, 50), on_press=self.generate_task)
-        #exec_generate_fasta_button.pos_hint = {'center_x': 0.5, 'center_y': 0.5}  # Position the button at the center of the layout
-        #exec_generate_fasta_button.padding = [20, 20]  # Set padding/margins (left and right: 20 pixels, top and bottom: 20 pixels)
+        exec_generate_fasta_button = Button(text='Generate task',
+                                            size_hint=(None, None),
+                                            size=(300, 100),
+                                            halign='center',
+                                            on_press=self.generate_task)
         exec_generate_fasta_button.bind(texture_size=exec_generate_fasta_button.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_generate_fasta_button)
 
         # Button to return to task selection screen
-        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen = Button(text='Return to task selection menu',
+                                            size_hint=(None, None),
+                                            size=(300, 100),
+                                            halign='center',
+                                            on_press=self.return_to_task_screen)
         exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_return_to_task_screen)
 
@@ -421,10 +517,8 @@ class IsolateCodesScreen(GridLayout):
         super(IsolateCodesScreen, self).__init__(**kwargs) # One should not forget to call super in order to implement the functionality of the original class being overloaded. Also note that it is good practice not to omit the **kwargs while calling super, as they are sometimes used internally.
         
         self.__workflow = workflow
-        self.rows = 4 # We ask the GridLayout to manage its children in two columns and 3 rows.
+        self.rows = 3 # We ask the GridLayout to manage its children in two columns and 3 rows.
         self.cols = 2
-
-        # Welcome message
         
         # Add text boxes
         self.add_widget(Label(text="Please, introduce csv's pathname: "))
@@ -435,12 +529,20 @@ class IsolateCodesScreen(GridLayout):
         self.add_widget(self.columnname)
 
         # Create a button with margins
-        exec_isolate_codes_button = Button(text='Generate Task', size_hint=(None, None), size=(150, 50), on_press=self.generate_task)
+        exec_isolate_codes_button = Button(text='Generate Task',
+                                           size_hint=(None, None),
+                                           size=(300, 100),
+                                           halign='center',
+                                           on_press=self.generate_task)
         exec_isolate_codes_button.bind(texture_size=exec_isolate_codes_button.setter('size'))
         self.add_widget(exec_isolate_codes_button)
 
         # Button to return to task selection screen
-        exec_return_to_task_screen = Button(text='Return to task selection menu', size_hint=(None, None), size=(150, 50), on_press=self.return_to_task_screen)
+        exec_return_to_task_screen = Button(text='Return to task selection menu',
+                                            size_hint=(None, None),
+                                            size=(300, 100),
+                                            halign='center',
+                                            on_press=self.return_to_task_screen)
         exec_return_to_task_screen.bind(texture_size=exec_return_to_task_screen.setter('size')) # The size of the button adapts automatically depending on the length of the text that it contains
         self.add_widget(exec_return_to_task_screen)
     
@@ -453,7 +555,7 @@ class IsolateCodesScreen(GridLayout):
             column_name = "BRC ID"
 
         if check_csv_format(csv_pathname):
-            isolate_column = IsolateColumn(csv_pathname, column_name) # data/BVBRC_slatt_domain-containing_protein.csv BRC ID
+            isolate_column = IsolateColumn(csv_pathname, column_name)
             self.__workflow.add_task(isolate_column)
             
             # Return to the task selection screen passing the updated workflow
@@ -485,31 +587,39 @@ class PatricTaskScreen(GridLayout):
         self.rows = 7
         self.cols = 1
 
-        # Insertar mensaje de bienvenida
-
-        isolate_codes_button = Button(text='Isolate PATRIC codes', size_hint=(None, None), size=(150, 50), on_press=self.open_isolate_codes_menu)
-        isolate_codes_button.bind(texture_size=isolate_codes_button.setter('size'))
+        isolate_codes_button = Button(text='Isolate PATRIC codes',
+                                      halign='center',
+                                      on_press=self.open_isolate_codes_menu)
         self.add_widget(isolate_codes_button)
 
-        gen_fasta_button = Button(text='Generate ".fasta" files', size_hint=(None, None), size=(150, 50), on_press=self.open_fasta_files_menu)
-        gen_fasta_button.bind(texture_size=gen_fasta_button.setter('size'))
+        gen_fasta_button = Button(text='Generate ".fasta" files',
+                                  halign='center',
+                                  on_press=self.open_fasta_files_menu)
         self.add_widget(gen_fasta_button)
 
-        reduce_sample_button = Button(text='Reduce sample', size_hint=(None, None), size=(150, 50), on_press=self.open_reduce_sample_menu)
-        reduce_sample_button.bind(texture_size=reduce_sample_button.setter('size'))
+        reduce_sample_button = Button(text='Reduce sample',    
+                                      halign='center',
+                                      on_press=self.open_reduce_sample_menu)
         self.add_widget(reduce_sample_button)
 
-        get_30kb_from_proteins_sample_button = Button(text='Get 30 kilobases up and down from given proteins', size_hint=(None, None), size=(150, 50), on_press=self.open_get30KBupanddown_menu)
-        get_30kb_from_proteins_sample_button.bind(texture_size=get_30kb_from_proteins_sample_button.setter('size'))
+        get_30kb_from_proteins_sample_button = Button(text='Get 30 kilobases up and down from given proteins',
+                                                      halign='center',
+                                                      on_press=self.open_get30KBupanddown_menu)
         self.add_widget(get_30kb_from_proteins_sample_button)
+
+        get_codons_from_bases_button = Button(text='Find protein codons from a set of genome bases',
+                                              halign='center',
+                                              on_press=self.open_get_codons_menu)
+        self.add_widget(get_codons_from_bases_button)
 
         '''reorder_proteins_sample_button = Button(text='Reorder sample from a .newick file', size_hint=(None, None), size=(150, 50), on_press=self.reorder_proteins_menu)
         reorder_proteins_sample_button.bind(texture_size=reorder_proteins_sample_button.setter('size'))
         self.add_widget(reorder_proteins_sample_button)'''
 
         # Button that opens the menu that allows manipulating all options concerning a workflow
-        workflow_menu_button = Button(text='Return to workflow menu', size_hint=(None, None), size=(150, 50), on_press=self.open_workflow_menu)
-        workflow_menu_button.bind(texture_size=workflow_menu_button.setter('size'))
+        workflow_menu_button = Button(text='Return to workflow menu',
+                                      halign='center',
+                                      on_press=self.open_workflow_menu)
         self.add_widget(workflow_menu_button)
 
         self.show_workflow_info()
@@ -534,6 +644,11 @@ class PatricTaskScreen(GridLayout):
         get30kb_screen = Get30KBScreen(self.__workflow)
         self.parent.add_widget(get30kb_screen)
 
+    def open_get_codons_menu(self, instance):
+        self.clear_widgets()
+        get_codons_screen = RecognizeCodonsScreen(self.__workflow)
+        self.parent.add_widget(get_codons_screen)
+
     '''def open_reorder_proteins_sample_menu(self, instance):
         self.clear_widgets() # Clean the objects in the screen before adding the new ones
         reorder_sample_screen = FromOrderedNewickToFastaScreen(self.__workflow)
@@ -545,14 +660,13 @@ class PatricTaskScreen(GridLayout):
         self.parent.add_widget(workflow_screen)
 
     def show_workflow_info(self): # Workflow info is shown through a function because it might be called from other methods that modify the workflow
-        scroll_view = ScrollView(size_hint=(1, None), size=(200, 200))
+        scroll_view = ScrollView(size_hint=(None, None), size=(Window.width, 250))
         scroll_view.bar_width = 10  # Adjust the scrollbar width here
         workflow_info_label = Label(text='Current Workflow:\n'+self.__workflow.show_info(),
                                     size_hint=(None, None),
-                                    size=(200, 200),
+                                    size=(Window.width, 250), # Width = Window width / number of columns defined in the view
                                     halign='center',
                                     valign='middle',
-                                    text_size=(Window.width, None)
                                 )
         workflow_info_label.bind(texture_size=workflow_info_label.setter('size'))
         scroll_view.add_widget(workflow_info_label)

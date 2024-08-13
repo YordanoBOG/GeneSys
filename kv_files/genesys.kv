@@ -1,16 +1,23 @@
 #:kivy 2.3.0
 
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+# Default options for our Kivy widgets
+
 <Button>:
     color: 1, 1, 1, 1  # Text color (White)
     background_normal: './kv_files/images/Shades-of-Green_14.png'
     background_disabled_down: './kv_files/images/green_4.png'
-    background_disabled_normal: './kv_files/images/green_3.png'
+    background_disabled_normal: './kv_files/images/green_5.png'
     background_down: './kv_files/images/green_6.png'
     border: (1, 1, 1, 1)
+    pos_hint:{"center_x": 0.5, "center_y": 0.5}
 
 <TextInput>:
     hint_text: 'Enter text'
-    background_color: 0, 0, 0, 1  # Black background
+    background_color: 0, 1, 0, 0.1  # Dark green background
     foreground_color: 1, 1, 1, 1  # White text
     font_size: 20
 
@@ -18,22 +25,69 @@
     #
 
 <PopUp>:
-    #
+    spacing: 10
+    padding: 10
 
 <Label>:
     text_size: (self.width, None)
     halign: 'auto'
     valign: 'middle'
-    #base_direction: None
-    #markup: True
-    #shorten: True
     ellipsis_options: {'color':(1,0.5,0.5,1),'underline':True}
     color: 1, 1, 1, 1  # White text
     font_size: 20
 
 <ScrollView>:
-    size_hint: (1, None)
-    size: (400, 200)
+    #size_hint: (1, None)
+    #size: (Window.width, 200)
 
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+# Options for our Genesys specified classes. We use this section only for defining margins
+# between widgets
+
+<MenuScreen>:
+    padding: 250 # Spaces between different BoxLayout
+
+<SelectResultsPathnameWorkflowScreen>:
+    spacing: 10 # Spaces between diferent buttons
+    padding: 10
+
+<WorkflowScreen>:
+    spacing: 10
+    padding: 10
+
+<GenerateWorkflowFromJsonScreen>:
+    spacing: 10
+    padding: 10
+
+<GenerateJsonScreen>:
+    spacing: 10
+    padding: 10
+
+<PatricTaskScreen>:
+    spacing: 10
+    padding: 10
+
+<IsolateCodesScreen>:
+    spacing: 10
+    padding: 10
+
+<FastaGenerationScreen>:
+    spacing: 10
+    padding: 10
+
+<ReduceSampleScreen>:
+    spacing: 10
+    padding: 10
+
+<Get30KBScreen>:
+    spacing: 10
+    padding: 10
+
+<RecognizeCodonsScreen>:
+    spacing: 10
+    padding: 10
 
 
