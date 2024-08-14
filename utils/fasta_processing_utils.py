@@ -19,7 +19,7 @@ any modules
 # It returns an explanation message
 def save_fasta_string(string, identifier, fasta_file):
     result = f"\nProtein still not processed\n"
-    try: 
+    try:
         # Write the identifier line
         identifier_line = ">" + identifier + "\n"
         fasta_file.write(identifier_line)
@@ -40,7 +40,7 @@ def save_fasta_string(string, identifier, fasta_file):
 ###############################################################################
 ###############################################################################
 ###############################################################################
-# Returns a vector that contains a sequence splitted in lines of 80 characters or less
+# Returns a vector that contains a sequence splitted in lines of 80 characters each (or less if it is the last line)
 def split_fasta_sequence(sequence) -> list:
     result_sequences = [] # We declare a void vector
     for i in range(0, len(sequence), 80): # Iterate over the sequence splitting it in strings of a maximum of 80 characters

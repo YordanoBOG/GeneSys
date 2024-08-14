@@ -9,11 +9,11 @@ asociated to each bait. It generates a JSON file with the baits and its
 corresponding proteins
 """
 
-import subprocess
 import json
 
 from modules.baseobjects import Task
 from utils.fasta_processing_utils import get_fasta_content
+from utils.biopython_utils import has_valid_stop_codon, from_bases_to_aminoacid
 
 ##############################################################################
 ##############################################################################
@@ -24,7 +24,6 @@ class GetCodonsFromFeatures(Task):
 
     __pathname_to_feature_proteins = ""
     __pathname_to_json_codons = ""
-    __protein_codons = {} # Dictionary where each key is a protein BRC ID and its value is a list of protein codons
 
     ###### INIT ######
 
@@ -41,7 +40,6 @@ class GetCodonsFromFeatures(Task):
         parameters = super().get_parameters()
         parameters['pathname_to_feature_proteins'] = self.__pathname_to_feature_proteins
         parameters['pathname_to_json_codons'] = self.__pathname_to_json_codons
-        parameters['protein_codons'] = self.__protein_codons
         return parameters
     
     # We set the parameters of the class from a dictionary received as an argument, both the superclass parameters and the current class ones
@@ -49,14 +47,12 @@ class GetCodonsFromFeatures(Task):
         super().set_parameters(parameters)
         self.__pathname_to_feature_proteins = parameters['pathname_to_feature_proteins']
         self.__pathname_to_json_codons = parameters['pathname_to_json_codons']
-        self.__protein_codons = parameters['protein_codons']
     
     # There is a value that we do not want to show when we get this task as a string
     def show_info(self):
         gen_fasta_dict = self.to_dict()
         gen_fasta_dict.pop('returned_info') # We remove returned info from __str__method as it is too long to be worth to be showed
         gen_fasta_dict.pop('returned_value')
-        gen_fasta_dict.pop('protein_codons')
         return str(gen_fasta_dict)
     
     ###### TASK EXECUTION METHODS ######
@@ -71,44 +67,66 @@ class GetCodonsFromFeatures(Task):
     def __get_codons(self):
         read_features_result = get_fasta_content(self.__pathname_to_feature_proteins) # Returns a tuple
         if read_features_result[0]: # If the first value of the tuple is True, it means the funtion "get_fasta_content" was succesful
-            codons_dict = read_features_result[1]
-            # Do what it needs to be done in order to recognize the given codons
-            self.__save_results(codons_dict)
-            self._returned_info += "Done"
+            codons_dict = self.__recognize_stop_codons(read_features_result[1]) # Isolate codons of each bait
+            self.__save_results(codons_dict) # Save found codons
+            self._returned_info += "\n\nTask done\n\n"
             self._returned_value = 0
         else:
             self._returned_info += "Error while trying to read the features: " + str(read_features_result[1])
             self._returned_value = 1
+
+    # Takes the readen dictionary of baits with all the bases that surround each and transforms the bases
+    # of a given bait into a list of valid codons, and returns the modified dictionary
+    def __recognize_stop_codons(self, baits_and_bases:dict):
+        baits_and_codons = {} # We will return this dictionary
+        for bait_id, bases in baits_and_bases.items(): # "bait_id" are keys and "bases" are the corresponding values of the dictionary
+            self._returned_info += f"\n\n################\n################\n################\nAnalyzing set of nucleotides whose bait protein is {bait_id}...\n"
+            codons_list = self.__divide_by_stop_codons(bases)
+            if codons_list: # If the list of features separated by stop codons is not empty
+                baits_and_codons[bait_id] = codons_list # Add the features separated by codons and the bait to the new dictionary
+            else:
+                self._returned_info += "There were no valid proteins realted to the bait.\n"
+        return baits_and_codons
+    
+    # Takes a string of bases and transforms each found codon into a protein, and returns all the proteins as a list
+    def __divide_by_stop_codons(self, bases:str):
+        # Recognize all the uppercase sequences in the string of bases (because they may correspond to final valid codons)
+        stop_codon_sequences = []
+        current_sequence = ""
+
+        for char in bases:
+            if char.isupper(): # Add the current character if it is uppercase
+                current_sequence += char
+            else:
+                if current_sequence: # If it is an empty sequence, it will mean we have readen a lowercase letter before, which means we wouldn't have any new uppercase string to process
+                    is_stop_codon_result = has_valid_stop_codon(current_sequence) # Returns a trio of values
+                    self._returned_info += is_stop_codon_result[2] # The third returned value is information about the execution
+                    if is_stop_codon_result[0]:
+                        current_sequence_protein = "".join( from_bases_to_aminoacid(is_stop_codon_result[1]) ) # We will store the aminoacid string instead of the nucleotyde one
+                                                                                                               # from_bases_to_aminoacid returns a list of proteins (check out utils.biopython_utils.from_bases_to_aminoacid) so we join it before appending it to the list
+                        stop_codon_sequences.append(current_sequence_protein) # The second returned value is the string that has been processed, which may have been returned reversed
+                        self._returned_info += f"\nThe nucleotide string has been saved as its equivalent amino acid string: {current_sequence_protein}"
+                    
+                    current_sequence = "" # Reinitialize current sequences' value because we have readen a lowercase character just after an uppercase one
+
+        # Append the last sequence if there is one and corresponds to a codon
+        if current_sequence:
+            is_stop_codon_result = has_valid_stop_codon(current_sequence)
+            self._returned_info += is_stop_codon_result[2]
+            if is_stop_codon_result[0]:
+                current_sequence_protein = "".join( from_bases_to_aminoacid(is_stop_codon_result[1]) ) # We will store the aminoacid string instead of the nucleotyde one
+                stop_codon_sequences.append(current_sequence_protein)
+                self._returned_info += f"\nThe nucleotide string has been saved as its equivalent amino acid string: {current_sequence_protein}"
+
+        return stop_codon_sequences
 
     # This creates the JSON file that contaisn the dictionary of codons
     def __save_results(self, dict_of_baits_and_codons:dict):
         try:
             with open(self.__pathname_to_json_codons, "w+") as json_file:
                 json.dump(dict_of_baits_and_codons, json_file)
-        except:
-            self._returned_info = "Error. Unable to write on file {}".format(self.__pathname_to_json_codons)
-            self._returned_value = 2
-        
-        
-        '''try:
-            # We execute a bash script that executes the proper BV-BRC tool which gets up 30kb correpsonding to regions surrounding a protein.
-            # It receives all the BV-BRC IDs from which get the proteins and stores them in a temporal
-            # fasta file in "./feature_regions.fasta" output
-            args_list = [self.__pathname_to_feature_proteins] # The arguments will be the BV_BRC proteins' IDs stored as a list preceeded by the pathname where to save the features
-            for code in self.__bait_proteins.keys():
-                args_list.append(code)
-            sh_command = ["modules/PATRIC_protein_processing/get_30kilobases_up_and_down.sh"] + args_list
-            get_30kb_fasta_result = subprocess.run(sh_command, capture_output=True, text=True)
-            if get_30kb_fasta_result.returncode == 0:
-                self._returned_info += f"\n\nThe file with the bases corresponding to up to 30kb of the regions surrounding the given proteins was written succesfully\n"
-                self._returned_value = 0 # Jump directly to the next step of the loop
-                # En el archivo aparece un espacio en blanco al final de cada identificador (pero no de las cadenas) que debe eliminarse al leerse de nuevo
-            else:
-                # Error
-                self._returned_info += f"\n\nERROR while getting the file with the bases corresponding to up to 30kb of the regions surrounding the given proteins\n"
-                self._returned_value = 1
         except Exception as e:
-            self._returned_info += f"\nUnexpected error occurred while executing the bash script that gets 30kb up and down from the given proteins: {e}"
-            self._returned_value = 2'''
+            self._returned_info = f"Error. Unable to write on file {self.__pathname_to_json_codons}: {e}"
+            self._returned_value = 2
 
     
