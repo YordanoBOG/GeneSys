@@ -51,15 +51,3 @@ def check_csv_format(pathname):
         result = True
     return result
 
-'''
-##############################################################################
-##############################################################################
-##############################################################################
-##############################################################################
-# Checks if a given pathname ends with ".newick" string
-def check_newick_format(pathname):
-    result = False
-    if str(pathname)[-7:].__eq__(".newick"):
-        result = True
-    return result
-'''

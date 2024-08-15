@@ -9,33 +9,6 @@ This script contains functions that will be employed by all modules that require
 from Bio import Align
 from Bio.Seq import Seq
 
-'''
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-# Returns E-value between two proteins given a default K and lambda parameters
-def calculate_e_value(protein_one, protein_two, K=0.1, lambda_=0.267):
-    aligner = Align.PairwiseAligner() # Create an aligner object
-    aligner.mode = 'local'
-    alignments = aligner.align(protein_one, protein_two) # Perform local alignment
-    best_alignment = alignments[0] # Extract the best alignment
-    score = best_alignment.score
-
-    # For e-value calculation, we generally need to perform database search and use statistical models.
-    # Here, we assume that we have a large enough database and statistical model parameters.
-    # We apply a empirical method to estimate e-value based on score
-    # These constants would normally be derived from the database and scoring system
-    m = len(protein_one)
-    n = len(protein_two)
-    e_value = K * m * n * (2.718 ** (-lambda_ * score)) # Calculate e-value
-
-    message = "Best Alignment Score: " + score + "\n" + "E-value: " + e_value + "\n" + "Alignment: " + best_alignment
-    print(message)
-
-    return e_value
-'''
-
 ###############################################################################
 ###############################################################################
 ###############################################################################
@@ -120,19 +93,21 @@ def has_valid_stop_codon(bases:str) -> list:
             result_context += f" -> Valid stop codon.\n"
         
         if result_bool: # If the string is still valid, we check also for stop codons in the middle of the string
-            result_context += "\nChecking for stop codons in the middle of the sequence...\n"
+            result_context += "\nChecking if the sequence is a multiple of three...\n"
             remainder = len(dna_seq)%3
-            if remainder != 0: # Trim the sequence by removing its first characters in case it is not a multiple of three
-                dna_seq = dna_seq[remainder:]
-            for i in range(len(dna_seq)-4, -1, -3): # We skip the last 3 bases which correspond to the stop codon we have already found
-                posible_codon = dna_seq[i-2:i+1]
-                #print(posible_codon)
-                if is_stop_codon_dna(posible_codon):
-                    result_context += f"\nThe trio of bases {str(posible_codon)} turned out to be a stop codon. The sequence is not valid\n"
-                    result_bool = False
-                    break
+            if remainder != 0: # If the sequence is not a multiple of three, it is not valid
+                result_bool = False
+                result_context += f"\nThe sequence has {str(len(dna_seq))} nucleotides so it is not a multiple of three. It is not valid.\n"
             if result_bool:
-                result_context += "\nThere are no stop codons in the middle of the sequence. The sequence is valid and has a stop codon.\n"
+                result_context += "\nThe sequence is a multiple of three. Checking for stop codons in the middle of the sequence...\n"
+                for i in range(len(dna_seq)-4, -1, -3): # We skip the last 3 bases which correspond to the stop codon we have already found
+                    posible_codon = dna_seq[i-2:i+1]
+                    if is_stop_codon_dna(posible_codon):
+                        result_context += f"\nThe trio of bases {str(posible_codon)} turned out to be a stop codon. The sequence is not valid\n"
+                        result_bool = False
+                        break
+                if result_bool:
+                    result_context += "\nThere are no stop codons in the middle of the sequence. The sequence is valid and has a stop codon.\n"
 
     result.append(result_bool)
     result.append(str(dna_seq)) # It may turn into some cast problems
@@ -157,102 +132,6 @@ def is_stop_codon_dna(bases) -> bool:
              bases.__eq__("TAG") or
              bases.__eq__("TGA")
            )
-
-'''
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-"""
-Checks if a given string of RNA bases is a valid stop codon
-
-Args:
-bases (str): sequence of RNA bases.
-
-Returns:
-boolean: True if the bases are a stop codon. False in other case
-"""
-def is_stop_codon_rna(bases) -> bool:
-    return ( bases.__eq__("UAG") or
-             bases.__eq__("UAA") or
-             bases.__eq__("UGA")
-           )
-
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-"""
-returns the reverse of a given DNA or RNA string
-
-Args:
-sequence: sequence of DNA or RNA bases.
-
-Returns:
-string: the reverse string of the given one
-"""
-def reverse_sequence(sequence):
-    comp = [] # List where to save the complementary sequence
-    type_of_sequence = verify_type_of_sequence(sequence=sequence)
-    if type_of_sequence == "DNA":
-        for base in sequence:
-            if base == "A":
-                comp.append("T")
-            elif base == "G":
-                comp.append("C")
-            elif base == "T":
-                comp.append("A")
-            elif base == "C":
-                comp.append("G")
-    elif type_of_sequence == "RNA":
-        for base in sequence:
-            if base == "U":
-                comp.append("A")
-            elif base == "G":
-                comp.append("C")
-            elif base == "A":
-                comp.append("U")
-            elif base == "C":
-                comp.append("G")
-    else:
-        return False # return False if the string is invalid
-       
-    #comp_rev = comp[::-1] # reverse the order of the elements of the sequence
-    #comp_rev = "".join(comp_rev)  # convert list to string
-    #return comp_rev
-
-###############################################################################
-###############################################################################
-###############################################################################
-###############################################################################
-"""
-Specifies if a string of bases is DNA RNA or invalid
-
-Args:
-sequence: sequence of DNA or RNA bases.
-
-Returns:
-string: idicating if it is a DNA sequence, RNA sequence or invalid
-"""
-def verify_type_of_sequence(sequence):
-    result = ""
-    sequence = sequence.upper()
-    seq = set(sequence)    # set the input sequence
-     
-    # confirm if its elements is equal to 
-    # the set of valid DNA bases
-    # Use a union method to ensure the
-    # sequence is verified if does not
-    # contain all the bases
-    if seq == {"A", "T", "C", "G"}.union(seq):
-        result = "DNA"
-    elif seq == {"A", "U", "C", "G"}.union(seq):
-        result = "RNA"
-    else:
-        result = "Invalid sequence"
-
-    return result
-#'''
 
 ###############################################################################
 ###############################################################################

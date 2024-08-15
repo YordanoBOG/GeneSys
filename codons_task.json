@@ -1,1 +1,0 @@
-[{"type": "modules.PATRIC_protein_processing.get_codons_from_features.GetCodonsFromFeatures", "returned_info": "", "returned_value": -1, "pathname_to_feature_proteins": "data/fasta/feature_regions.fasta", "pathname_to_json_codons": "data/features_separated_by_stop_codons.json"}]
