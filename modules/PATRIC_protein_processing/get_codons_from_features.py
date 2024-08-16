@@ -5,11 +5,12 @@
 
 This file implements a GeneSys task that reads a fasta file
 that refer to proteins that surround baits and recognizes all the proteins
-asociated to each bait. It generates a JSON file with the baits and its
+asociated to each bait. It generates an EXCEL file with the baits and its
 corresponding proteins
 """
 
-import json
+#import json
+import pandas as pd
 
 from modules.baseobjects import Task
 from utils.fasta_processing_utils import get_fasta_content
@@ -23,15 +24,15 @@ from utils.biopython_utils import has_valid_stop_codon, from_bases_to_aminoacid
 class GetCodonsFromFeatures(Task):
 
     __pathname_to_feature_proteins = ""
-    __pathname_to_json_codons = ""
+    __pathname_to_excel_results = ""
 
     ###### INIT ######
 
     def __init__(self, pathname_to_feature_proteins = "./feature_regions.fasta",
-                 pathname_to_json_results = "./codons.json"):
+                 pathname_to_excel_results = "./check_stop_codons.xlsx"):
         super().__init__()
         self.__pathname_to_feature_proteins = pathname_to_feature_proteins
-        self.__pathname_to_json_codons = pathname_to_json_results
+        self.__pathname_to_excel_results = pathname_to_excel_results
     
     ###### GET/SET METHODS ######
 
@@ -39,14 +40,14 @@ class GetCodonsFromFeatures(Task):
     def get_parameters(self) -> dict:
         parameters = super().get_parameters()
         parameters['pathname_to_feature_proteins'] = self.__pathname_to_feature_proteins
-        parameters['pathname_to_json_codons'] = self.__pathname_to_json_codons
+        parameters['pathname_to_excel_results'] = self.__pathname_to_excel_results
         return parameters
     
     # We set the parameters of the class from a dictionary received as an argument, both the superclass parameters and the current class ones
     def set_parameters(self, parameters):
         super().set_parameters(parameters)
         self.__pathname_to_feature_proteins = parameters['pathname_to_feature_proteins']
-        self.__pathname_to_json_codons = parameters['pathname_to_json_codons']
+        self.__pathname_to_excel_results = parameters['pathname_to_excel_results']
     
     # There is a value that we do not want to show when we get this task as a string
     def show_info(self):
@@ -120,13 +121,23 @@ class GetCodonsFromFeatures(Task):
 
         return stop_codon_sequences
 
-    # This creates the JSON file that contaisn the dictionary of codons
+    # This creates the EXCEL file that contaisn the dictionary of codons
     def __save_results(self, dict_of_baits_and_codons:dict):
         try:
-            with open(self.__pathname_to_json_codons, "w+") as json_file:
-                json.dump(dict_of_baits_and_codons, json_file)
+            # Prepare data for Excel
+            data = []
+            for key, sequences in dict_of_baits_and_codons.items():
+                for sequence in sequences:
+                    data.append([key, sequence])
+            df = pd.DataFrame(data, columns=['Key', 'Sequence']) # Convert to DataFrame
+            df.to_excel(self.__pathname_to_excel_results, index=False) # Write DataFrame to Excel file
+            self._returned_info += f"\nResults were saved to {str(self.__pathname_to_excel_results)} excel results file.\n"
+            self._returned_value = 0
+
+            #with open(self.__pathname_to_json_codons, "w+") as json_file:
+                #json.dump(dict_of_baits_and_codons, json_file)
         except Exception as e:
-            self._returned_info = f"Error. Unable to write on file {self.__pathname_to_json_codons}: {e}"
+            self._returned_info = f"Error. Unable to write on file {self.__pathname_to_excel_results}: {e}"
             self._returned_value = 2
 
     

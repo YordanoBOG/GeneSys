@@ -14,7 +14,7 @@ from modules.PATRIC_protein_processing.reduce_sample import ReduceSample
 from modules.PATRIC_protein_processing.get_30kb_upanddown import Get30KbProteins
 from modules.PATRIC_protein_processing.get_codons_from_features import GetCodonsFromFeatures
 from modules.baseobjects import Workflow
-from utils.check_format_utils import check_fasta_format, check_csv_format, check_json_format
+from utils.check_format_utils import check_fasta_format, check_csv_format, check_json_format, check_excel_format
 
 import kivy
 kivy.require('2.3.0')
@@ -52,10 +52,10 @@ class RecognizeCodonsScreen(GridLayout):
         self.feature_regions_fasta_text_input = TextInput(multiline=False)
         self.add_widget(self.feature_regions_fasta_text_input)
 
-        json_results_label = Label(text="Please, introduce the pathname of the .json file where to save the recognized codons (<./codons.json> by default): ")
-        self.add_widget(json_results_label)
-        self.json_results_text_input = TextInput(multiline=False)
-        self.add_widget(self.json_results_text_input)
+        excel_results_label = Label(text="Please, introduce the pathname of the excel file where to save the recognized codons (<./check_stop_codons.xlsx> by default): ")
+        self.add_widget(excel_results_label)
+        self.excel_results_text_input = TextInput(multiline=False)
+        self.add_widget(self.excel_results_text_input)
         #'''
 
         # Button to create de task
@@ -82,9 +82,9 @@ class RecognizeCodonsScreen(GridLayout):
         if feature_regions_fasta_pathname.__eq__(""):
             feature_regions_fasta_pathname = "./feature_regions.fasta"
 
-        json_results_pathname = self.json_results_text_input.text
-        if json_results_pathname.__eq__(""):
-            json_results_pathname = "./codons.json"
+        excel_results_pathname = self.excel_results_text_input.text
+        if excel_results_pathname.__eq__(""):
+            excel_results_pathname = "./check_stop_codons.xlsx"
 
         # We chekc if the previous task of the workflow stores a specific __pathname_to_feature_proteins.
         # In that case, it will be taken as the __pathname_to_feature_proteins parameter of the new task
@@ -98,15 +98,15 @@ class RecognizeCodonsScreen(GridLayout):
                 feature_regions_fasta_pathname = last_task_dict['pathname_to_feature_proteins']
 
         # Check formats
-        if not check_json_format(json_results_pathname):
-            self.json_results_text_input.text = "NOT A JSON FORMAT"
+        if not check_excel_format(excel_results_pathname):
+            self.excel_results_text_input.text = "NOT AN EXCEL FORMAT"
         if not check_fasta_format(feature_regions_fasta_pathname):
             self.feature_regions_fasta_text_input.text = "NOT A FASTA FORMAT"
         
-        if check_json_format(json_results_pathname) and check_fasta_format(feature_regions_fasta_pathname):
+        if check_excel_format(excel_results_pathname) and check_fasta_format(feature_regions_fasta_pathname):
             # Create a new task only if the format of the given arguments is correct
             get_codons = GetCodonsFromFeatures(pathname_to_feature_proteins=feature_regions_fasta_pathname,
-                                               pathname_to_json_results=json_results_pathname,
+                                               pathname_to_excel_results=excel_results_pathname,
                                               )
             self.__workflow.add_task(get_codons)
             self.clear_widgets() # Clean the objects in the screen before adding the new ones

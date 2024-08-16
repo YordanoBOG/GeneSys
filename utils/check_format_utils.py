@@ -51,3 +51,15 @@ def check_csv_format(pathname):
         result = True
     return result
 
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+# Checks if a given pathname ends with ".xlsx" string
+def check_excel_format(pathname):
+    result = False
+    if str(pathname)[-5:].__eq__(".xlsx"):
+        result = True
+    return result
+
