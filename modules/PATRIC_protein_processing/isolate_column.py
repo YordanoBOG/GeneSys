@@ -59,16 +59,6 @@ class IsolateColumn(Task):
         isolate_col_dict.pop('returned_value')
         return str(isolate_col_dict)
     
-    '''
-    # This method allows the user to know if the execution was succesful
-    def get_returned_value(self):
-        return self._returned_value
-    
-    # This method allows the user to get the stored info about the execution
-    def get_returned_info(self):
-        return self._returned_info
-    '''
-    
     ###### TASK EXECUTION METHODS ######
     
     # This is the method which will be called by the user to create a new csv with the isolated column

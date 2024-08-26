@@ -1,4 +1,3 @@
-#import re
 import subprocess
 
 from modules.baseobjects import Task
