@@ -45,8 +45,7 @@ class RecognizeCodonsScreen(GridLayout):
         self.rows = 3
         self.cols = 2
 
-        # Add text boxes
-        #'''        
+        # Add text boxes     
         feature_regions_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where the features are stored (<./feature_regions.fasta> by default)(If a previous Get30KBScreen task is defined for this workflow, its parameter <__pathname_to_feature_proteins> value will be taken as this parameter instead of the one given in this text box): ")
         self.add_widget(feature_regions_fasta_text_label)
         self.feature_regions_fasta_text_input = TextInput(multiline=False)
@@ -56,7 +55,6 @@ class RecognizeCodonsScreen(GridLayout):
         self.add_widget(excel_results_label)
         self.excel_results_text_input = TextInput(multiline=False)
         self.add_widget(self.excel_results_text_input)
-        #'''
 
         # Button to create de task
         exec_recognize_codons = Button(text='Generate task',
@@ -137,7 +135,6 @@ class Get30KBScreen(GridLayout):
         self.cols = 2
 
         # Add text boxes
-        #'''        
         reduced_sample_fasta_text_label = Label(text="Please, introduce the pathname of the .fasta file where the reduced sample is saved (<./reduced_proteins.fasta> by default)(If a previous ReduceSample task is defined for this workflow, its parameter <__pathname_to_reduced_proteins> value will be taken as this parameter instead of the one given in this text box): ")
         self.add_widget(reduced_sample_fasta_text_label)
         self.reduced_sample_fasta_text_input = TextInput(multiline=False)
@@ -147,7 +144,6 @@ class Get30KBScreen(GridLayout):
         self.add_widget(feature_regions_fasta_text_label)
         self.feature_regions_fasta_text_input = TextInput(multiline=False)
         self.add_widget(self.feature_regions_fasta_text_input)
-        #'''
 
         # Create a button with margins
         exec_get_features = Button(text='Generate task',
@@ -228,7 +224,6 @@ class ReduceSampleScreen(GridLayout):
         self.cols = 2
 
         # Add text boxes
-        #'''
         fasta_pathname_text_label = Label(text="Please, introduce the pathname to the .fasta file that contains the proteins to reduce (if a previous GenerateFasta task is defined for this workflow, its parameter <__fasta_pathname> value will be taken as this parameter instead of the one given in this text box. If no one is given, <./proteins.fasta> by default): ")
         self.add_widget(fasta_pathname_text_label)
         self.fasta_pathname_text_input = TextInput(multiline=False)
@@ -243,7 +238,6 @@ class ReduceSampleScreen(GridLayout):
         self.add_widget(limit_percentage_text_label)
         self.limit_percentage_text_input = TextInput(multiline=False)
         self.add_widget(self.limit_percentage_text_input)
-        #'''
 
         # Create a button with margins
         exec_reduce_sample_button = Button(text='Generate task',
@@ -287,7 +281,6 @@ class ReduceSampleScreen(GridLayout):
         limit_percentage_text = self.limit_percentage_text_input.text
         if limit_percentage_text.__eq__(""):
             limit_percentage_text = "85"
-        #limit_e_value = convert_to_scientific_notation(limit_percentage_text)
         try:
             limit_percentage = float(limit_percentage_text)
             if limit_percentage not in range(0,100):
@@ -337,19 +330,15 @@ class FastaGenerationScreen(GridLayout):
         self.rows = 3 # We ask the GridLayout to manage its children in two columns and 3 rows.
         self.cols = 2
 
-        # Welcome message
-
         # Add text boxes
-        #'''
         protein_codes_text_label = Label(text="Please, introduce protein codes csv's pathname (if a previous IsolateColumn task is defined for this workflow, its returned <csv_codes_path> value will be taken as this parameter instead of the one given in this text box): ")
         self.add_widget(protein_codes_text_label)
         self.csv_codes_path = TextInput(multiline=False)
         self.add_widget(self.csv_codes_path)
         
-        self.add_widget(Label(text="Please, introduce folder's pathname where to save new fasta files (current folder by default): "))
+        self.add_widget(Label(text="Please, introduce the pathname where to save the returned fasta file (./proteins.fasta by default): "))
         self.folder_pathname = TextInput(multiline=False)
         self.add_widget(self.folder_pathname)
-        #'''
 
         # Create a button with margins
         exec_generate_fasta_button = Button(text='Generate task',

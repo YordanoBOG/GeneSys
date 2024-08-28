@@ -60,6 +60,8 @@ class GenerateFasta(Task):
 
     # This is the method which will be called by the user in order to store de .fasta files
     def run(self):
+        self._returned_value = -1
+        self._returned_info = ""
         self.__acces_codes()
 
     # This method isolates the ID's column from the specified csv path and calls
@@ -78,7 +80,7 @@ class GenerateFasta(Task):
                         column_name = csv_reader.fieldnames[0] # We know that there is only one column so the first column is the column that we are looking for
                         codes_column = [row[column_name] for row in csv_reader] # Isolate the codes of the column in a list
                         self.__obtain_protein_strings(codes_column) # Method that creates a fasta file in the proper path
-
+                        self._returned_value = 0
                     except Exception as e:
                         self._returned_info = f"Unexpected error occurred while trying to access the CSV codes file: {e}\n"
                         self._returned_value = 2

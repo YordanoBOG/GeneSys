@@ -63,6 +63,8 @@ class IsolateColumn(Task):
     
     # This is the method which will be called by the user to create a new csv with the isolated column
     def run(self):
+        self._returned_value = -1
+        self._returned_info = ""
         self.__process_codes()
     
     # This method isolates the requested column form the specified csv path and calls

@@ -195,7 +195,7 @@ class Workflow(Task):
     
     def remove_last_task(self):
         """
-        Removes from the last task that was added to the workflow.
+        Removes the last task that was added to the workflow.
         """
         if self.get_len_workflow() > 0:
             (self.__tasks).pop()

@@ -7,23 +7,19 @@ from utils.biopython_utils import get_coincidence_percentage
 class ReduceSample(Task):
     __limit_percentage = 85
     __pathname_to_reduced_proteins = ""
-    __proteins = {}
+    __fasta_pathname = ""
+    __proteins = {} # We have to store the proteins as an attribute because they will be accesed from more than one method
     __reduced_proteins = {}
 
     ###### INIT ######
 
     def __init__(self, fasta_pathname="./proteins.fasta", 
                  pathname_to_reduced_proteins="./reduced_proteins.fasta",
-                 percentage=1e-20):
-        # When we load this class from a json file, it gives the following error:
-        # Unexpected error occurred: [Errno 2] No existe el archivo o el directorio: './proteins.fasta'
-        # Which is because we are instantiating an object of this class when we load the
-        # json file, but it is not dangerous as we are filling the object's attributes with
-        # the information contained in the json file right after its instantiation
+                 percentage=85):
         super().__init__()
-        self.__get_proteins_from_fasta(fasta_pathname) # Fill self.__proteins
+        self.__fasta_pathname = fasta_pathname
         self.__pathname_to_reduced_proteins = pathname_to_reduced_proteins
-        self.__limit_percentage = percentage # e_value syntax is properly checked at the Kivy UI
+        self.__limit_percentage = percentage
     
     ###### GET/SET METHODS ######
 
@@ -31,6 +27,7 @@ class ReduceSample(Task):
     def get_parameters(self) -> dict:
         parameters = super().get_parameters()
         parameters['pathname_to_reduced_proteins'] = self.__pathname_to_reduced_proteins
+        parameters['fasta_pathname'] = self.__fasta_pathname
         parameters['proteins'] = self.__proteins
         parameters['reduced_proteins'] = self.__reduced_proteins
         parameters['limit_percentage'] = self.__limit_percentage
@@ -40,6 +37,7 @@ class ReduceSample(Task):
     def set_parameters(self, parameters):
         super().set_parameters(parameters)
         self.__pathname_to_reduced_proteins = parameters['pathname_to_reduced_proteins']
+        self.__fasta_pathname = parameters['fasta_pathname']
         self.__proteins = parameters['proteins']
         self.__reduced_proteins = parameters['reduced_proteins']
         self.__limit_percentage = parameters['limit_percentage']
@@ -54,8 +52,8 @@ class ReduceSample(Task):
     
     ###### FILL CLASS VALUES METHODS #####
 
-    def __get_proteins_from_fasta(self, fasta_pathname):
-        get_prot_res = get_fasta_content(fasta_path=fasta_pathname) # Returns a tuple where the first element is a boolean of the result
+    def __get_proteins_from_fasta(self):
+        get_prot_res = get_fasta_content(fasta_path=self.__fasta_pathname) # Returns a tuple where the first element is a boolean of the result
         if get_prot_res[0]:
             self.__proteins = get_prot_res[1]
         else:
@@ -67,7 +65,9 @@ class ReduceSample(Task):
 
     # This is the method which will be called by the user in order to store de .fasta files
     def run(self):
+        self._returned_value = -1
         self._returned_info = ""
+        self.__get_proteins_from_fasta() # Fill self.__proteins
         self.__reduce_proteins()
 
         

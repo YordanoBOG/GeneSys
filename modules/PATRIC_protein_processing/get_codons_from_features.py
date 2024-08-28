@@ -60,6 +60,7 @@ class GetCodonsFromFeatures(Task):
 
     # This is the method which will be called by the user in order to store de .fasta files
     def run(self):
+        self._returned_value = -1
         self._returned_info = ""
         self.__get_codons()
 
@@ -86,7 +87,7 @@ class GetCodonsFromFeatures(Task):
             if codons_list: # If the list of features separated by stop codons is not empty
                 baits_and_codons[bait_id] = codons_list # Add the features separated by codons and the bait to the new dictionary
             else:
-                self._returned_info += "There were no valid proteins realted to the bait.\n"
+                self._returned_info += "There were no valid proteins related to the bait.\n"
         return baits_and_codons
     
     # Takes a string of bases and transforms each found codon into a protein, and returns all the proteins as a list
@@ -133,9 +134,6 @@ class GetCodonsFromFeatures(Task):
             df.to_excel(self.__pathname_to_excel_results, index=False) # Write DataFrame to Excel file
             self._returned_info += f"\nResults were saved to {str(self.__pathname_to_excel_results)} excel results file.\n"
             self._returned_value = 0
-
-            #with open(self.__pathname_to_json_codons, "w+") as json_file:
-                #json.dump(dict_of_baits_and_codons, json_file)
         except Exception as e:
             self._returned_info = f"Error. Unable to write on file {self.__pathname_to_excel_results}: {e}"
             self._returned_value = 2
