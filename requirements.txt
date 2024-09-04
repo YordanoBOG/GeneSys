@@ -1,0 +1,4 @@
+-> Biopython 1.83
+-> Kivy 2.3.0
+-> BV-BRC CLI 1.040. Go to https://github.com/BV-BRC/BV-BRC-CLI/releases and install the .deb version in Ubuntu.
+-> pandas 2.1.2
